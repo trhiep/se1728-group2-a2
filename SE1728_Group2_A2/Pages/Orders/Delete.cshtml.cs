@@ -7,18 +7,19 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using SE1728_Group2_A2.Models;
 
-namespace SE1728_Group2_A2.Pages.OrdersManagement
+namespace SE1728_Group2_A2.Pages.Orders
 {
-    public class DetailsModel : PageModel
+    public class DeleteModel : PageModel
     {
         private readonly SE1728_Group2_A2.Models.MyStoreContext _context;
 
-        public DetailsModel(SE1728_Group2_A2.Models.MyStoreContext context)
+        public DeleteModel(SE1728_Group2_A2.Models.MyStoreContext context)
         {
             _context = context;
         }
 
-      public Order Order { get; set; } = default!; 
+        [BindProperty]
+      public Order Order { get; set; } = default!;
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
@@ -28,6 +29,7 @@ namespace SE1728_Group2_A2.Pages.OrdersManagement
             }
 
             var order = await _context.Orders.FirstOrDefaultAsync(m => m.OrderId == id);
+
             if (order == null)
             {
                 return NotFound();
@@ -37,6 +39,24 @@ namespace SE1728_Group2_A2.Pages.OrdersManagement
                 Order = order;
             }
             return Page();
+        }
+
+        public async Task<IActionResult> OnPostAsync(int? id)
+        {
+            if (id == null || _context.Orders == null)
+            {
+                return NotFound();
+            }
+            var order = await _context.Orders.FindAsync(id);
+
+            if (order != null)
+            {
+                Order = order;
+                _context.Orders.Remove(Order);
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToPage("./Index");
         }
     }
 }
