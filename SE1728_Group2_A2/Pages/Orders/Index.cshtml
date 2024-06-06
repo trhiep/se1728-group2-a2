@@ -1,42 +1,92 @@
 ﻿@page
 @model SE1728_Group2_A2.Pages.Orders.IndexModel
+@using SE1728_Group2_A2.Utils.ModelHelper
 
 @{
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<h1>@ViewData["PageHeading"]</h1>
 
 <p>
-    <a asp-page="Create">Create New</a>
+    <a asp-page="Create" class="btn btn-primary">Create New Order</a>
 </p>
-<table class="table">
+<form asp-page="./Index" method="post">
+    <label for="searchDate">Search orders by date:</label>
+    <input id="searchDate" asp-for="@Model.SearchDate" class="form-control" />
+    <input type="submit" value="Search" class="btn btn-primary mt-2" />
+</form>
+<table class="table table-hover mt-3">
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Order[0].OrderDate)
+                ID
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Order[0].Staff)
+                Date
             </th>
-            <th></th>
+            <th>
+                Total
+            </th>
+            <th>
+                Action
+            </th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model.Order) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.OrderDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Staff.StaffId)
-            </td>
-            <td>
-                <a asp-page="./Edit" asp-route-id="@item.OrderId">Edit</a> |
-                <a asp-page="./Details" asp-route-id="@item.OrderId">Details</a> |
-                <a asp-page="./Delete" asp-route-id="@item.OrderId">Delete</a>
-            </td>
-        </tr>
-}
+        @foreach (var item in Model.Order)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.OrderId)
+                </td>
+                <td>
+                    @OrdersHelper.GetFormatedDateTime(item.OrderDate)
+                </td>
+                <td>
+                    @OrdersHelper.GetFormatedCurrency(OrdersHelper.CalculateOrderTotal(item))
+                </td>
+                <td>
+                    <a asp-page="./Details" asp-route-id="@item.OrderId" class="btn btn-success">Details</a>
+                    <a asp-page="./Edit" asp-route-id="@item.OrderId" class="btn btn-warning">Edit</a>
+                    <a class="btn btn-danger btnDelete" data-id="@item.OrderId">Delete</a>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
+
+<h2>@ViewData["OrderTotalInDay"]</h2>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        flatpickr("#searchDate", {
+            dateFormat: "d/m/Y"
+        });
+    });
+</script>
+
+@section Scripts {
+    <script>
+        document.addEventListener('click', function (event) {
+            if (event.target.classList.contains('btnDelete')) {
+                // Lấy ID của hàng từ thuộc tính data-id của nút Delete
+                var orderId = event.target.getAttribute('data-id');
+
+                Swal.fire({
+                    title: "Are you sure you want to delete this order?",
+                    icon: 'warning',
+                    showDenyButton: true,
+                    confirmButtonText: "No", // Confirm button moved to the right
+                    denyButtonText: "Yes" // Deny button moved to the left
+                }).then((result) => {
+                    if (!result.isConfirmed) {
+                        window.location.href = 'Orders/Delete?id=' + orderId;
+                    }
+                });
+            }
+        });
+    </script>
+}
+
+

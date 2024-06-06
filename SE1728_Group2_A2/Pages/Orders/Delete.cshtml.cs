@@ -23,27 +23,7 @@ namespace SE1728_Group2_A2.Pages.Orders
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
-            if (id == null || _context.Orders == null)
-            {
-                return NotFound();
-            }
-
-            var order = await _context.Orders.FirstOrDefaultAsync(m => m.OrderId == id);
-
-            if (order == null)
-            {
-                return NotFound();
-            }
-            else 
-            {
-                Order = order;
-            }
-            return Page();
-        }
-
-        public async Task<IActionResult> OnPostAsync(int? id)
-        {
-            if (id == null || _context.Orders == null)
+            if(id == null || _context.Orders == null)
             {
                 return NotFound();
             }
