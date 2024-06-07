@@ -30,17 +30,23 @@ namespace SE1728_Group2_A2.Pages.Orders
         [BindProperty]
         public string SearchDate { get; set; }
 
+        public string DisplayDate {  get; set; }
+
         public IList<Order> Order { get; set; } = default! ;
 
         public async Task OnGetAsync()
         {
-            var today = DateTime.Today;
-            var tomorrow = today.AddDays(1);
+            DateTime searchDateVal = OrdersHelper.GetFormatedDateTimeFromString(SearchDate);
+            if (searchDateVal == default(DateTime))
+            {
+                searchDateVal = DateTime.Today;
+            }
+            var tomorrow = searchDateVal.AddDays(1);
 
             if (_context.Orders != null)
             {
                 Order = await _context.Orders
-                    .Where(o => o.StaffId == staffId).Where(o => o.OrderDate >= today && o.OrderDate < tomorrow)
+                    .Where(o => o.StaffId == staffId).Where(o => o.OrderDate >= searchDateVal && o.OrderDate < tomorrow)
                     .Include(o => o.Staff)
                     .Include(od => od.OrderDetails)
                     .OrderByDescending(o => o.OrderId)
@@ -50,9 +56,10 @@ namespace SE1728_Group2_A2.Pages.Orders
                 if (Order != null)
                 {
                     String totalOrder = OrdersHelper.GetFormatedCurrency(Order.SelectMany(order => order.OrderDetails)
-                    .Sum(orderDetail => orderDetail.Quantity * orderDetail.UnitPrice).ToString());
+                    .Sum(orderDetail => orderDetail.UnitPrice).ToString());
                     ViewData["OrderTotalInDay"] = "Total order today: " + totalOrder;
                     ViewData["PageHeading"] = "Orders of staff " + staffId + " today";
+                    DisplayDate = searchDateVal.ToString("yyyy/MM/dd");
                 }
             }
 
@@ -60,11 +67,7 @@ namespace SE1728_Group2_A2.Pages.Orders
 
         public async Task OnPostAsync()
         {
-            DateTime searchDateVal = DateTime.Today;
-            if (DateTime.TryParseExact(SearchDate, "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
-            {
-                searchDateVal = parsedDate;
-            }
+            DateTime searchDateVal = OrdersHelper.GetFormatedDateTimeFromString(SearchDate);
             var tomorrow = searchDateVal.AddDays(1);
             if (_context.Orders != null)
             {
@@ -79,9 +82,10 @@ namespace SE1728_Group2_A2.Pages.Orders
                 if (Order != null)
                 {
                     String totalOrder = OrdersHelper.GetFormatedCurrency(Order.SelectMany(order => order.OrderDetails)
-                    .Sum(orderDetail => orderDetail.Quantity * orderDetail.UnitPrice).ToString());
+                    .Sum(orderDetail => orderDetail.UnitPrice).ToString());
                     ViewData["PageHeading"] = "Orders of staff " + staffId + " on " + OrdersHelper.GetFormatedDate(searchDateVal);
                     ViewData["OrderTotalInDay"] = "Total order on " + OrdersHelper.GetFormatedDate(searchDateVal) + ": " + totalOrder;
+                    DisplayDate = searchDateVal.ToString("yyyy/MM/dd");
                 }
             }
 
