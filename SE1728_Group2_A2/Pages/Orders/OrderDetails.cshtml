@@ -1,0 +1,73 @@
+﻿@page
+@model SE1728_Group2_A2.Pages.Orders.OrderDetailsModel
+@using SE1728_Group2_A2.Utils.ModelHelper
+
+@{
+    Layout = null;
+    int count = 1;
+    int orderTotal = 0;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>OrderDetails</title>
+</head>
+<body>
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>
+                    No
+                </th>
+                <th>
+                    Product ID
+                </th>
+                <th>
+                    Product Name
+                </th>
+                <th>
+                    Unit Price
+                </th>
+                <th>
+                    Quantity
+                </th>
+                <th>
+                    Total Price
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.OrderDetail)
+            {
+                int totalPrice = item.Quantity * item.Product.UnitPrice;
+                orderTotal += totalPrice;
+                <tr>
+                    <td>
+                        @count
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Product.ProductId)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Product.ProductName)
+                    </td>
+                    <td>
+                        @OrdersHelper.GetFormatedCurrency(item.Product.UnitPrice.ToString())
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Quantity)
+                    </td>
+                    <td>
+                        @OrdersHelper.GetFormatedCurrency(totalPrice.ToString())
+                    </td>
+                </tr>
+                count++;
+            }
+        </tbody>
+    </table>
+    <h5 style="margin-top: 25px;">TOTAL: @OrdersHelper.GetFormatedCurrency(orderTotal.ToString())</h5>
+</body>
+</html>

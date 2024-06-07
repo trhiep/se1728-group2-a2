@@ -47,7 +47,7 @@
                     @OrdersHelper.GetFormatedCurrency(OrdersHelper.CalculateOrderTotal(item))
                 </td>
                 <td>
-                    <a asp-page="./Details" asp-route-id="@item.OrderId" class="btn btn-success">Details</a>
+                    <button class="btn btn-success view-details" data-order-id="@item.OrderId">View Details</button>
                     <a asp-page="./Edit" asp-route-id="@item.OrderId" class="btn btn-warning">Edit</a>
                     <a class="btn btn-danger btnDelete" data-id="@item.OrderId">Delete</a>
                 </td>
@@ -58,15 +58,42 @@
 
 <h2>@ViewData["OrderTotalInDay"]</h2>
 <div id="displayDate" data-message="@Model.DisplayDate"></div>
+
+<!-- Bootstrap Modal -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1" role="dialog" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-lg-custom" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="orderDetailsModalLabel">Order Details</h5>
+            </div>
+            <div class="modal-body">
+                <table class="table" id="orderDetailsTable">
+                    <!-- Order details will be populated here -->
+                </table>
+            </div>
+            <div class="modal-footer">
+                <a id="editOrderLink" class="btn btn-warning">Edit</a>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .modal-lg-custom {
+        max-width: 60%;
+    }
+</style>
+
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         var displayDate = document.getElementById('displayDate');
         var displayDateVal = displayDate.getAttribute('data-message');
         var date = new Date(displayDateVal);
-        console.log(date);
         flatpickr("#searchDate", {
             dateFormat: "d/m/Y",
-            defaultDate: date
+            defaultDate: date,
+            maxDate: "today"
         });
     });
 </script>
@@ -94,6 +121,36 @@
             }
         });
     </script>
+
+    <script>
+        $(document).ready(function () {
+            $('.view-details').click(function () {
+                var orderId = $(this).data('order-id');
+                // Set the orderId to the edit link
+                $('#editOrderLink').attr('href', '@Url.Page("./Edit")' + '?id=' + orderId);
+
+                $.ajax({
+                    url: '@Url.Page("OrderDetails", "OnGetOrderDetails")',
+                    type: 'GET',
+                    data: { orderId: orderId },
+                    success: function (data) {
+                        $('#orderDetailsTable').html(data);
+                        $('#orderDetailsModal').modal('show');
+                    },
+                    error: function () {
+                        alert('Error fetching order details.');
+                    }
+                });
+            });
+
+            // Bind close action directly to the "Close" button
+            $('#orderDetailsModal .btn-secondary').click(function () {
+                $('#orderDetailsModal').modal('hide');
+            });
+        });
+
+    </script>
+
 }
 
 
