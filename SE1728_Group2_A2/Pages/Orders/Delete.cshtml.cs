@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SE1728_Group2_A2.Models;
@@ -16,10 +17,13 @@ namespace SE1728_Group2_A2.Pages.Orders
             _context = context;
         }
 
+        [TempData]
+        public string SearchedDate { get; set; }
+
         [BindProperty]
         public Order Order { get; set; } = default!;
 
-        public async Task<IActionResult> OnGetAsync(int? id)
+        public async Task<IActionResult> OnGetAsync(int? id, string searchedDate)
         {
             if (id == null || _context.Orders == null)
             {
@@ -34,6 +38,8 @@ namespace SE1728_Group2_A2.Pages.Orders
                 _context.Orders.Remove(Order);
                 await _context.SaveChangesAsync();
             }
+            DateTime parsedDate = DateTime.ParseExact(searchedDate, "yyyy/MM/dd", CultureInfo.InvariantCulture);
+            TempData["SearchedDate"] = parsedDate.ToString("dd/MM/yyyy"); ;
             return RedirectToPage("./Index");
         }
     }
