@@ -57,11 +57,16 @@
 </table>
 
 <h2>@ViewData["OrderTotalInDay"]</h2>
-
+<div id="displayDate" data-message="@Model.DisplayDate"></div>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+        var displayDate = document.getElementById('displayDate');
+        var displayDateVal = displayDate.getAttribute('data-message');
+        var date = new Date(displayDateVal);
+        console.log(date);
         flatpickr("#searchDate", {
-            dateFormat: "d/m/Y"
+            dateFormat: "d/m/Y",
+            defaultDate: date
         });
     });
 </script>
@@ -70,9 +75,8 @@
     <script>
         document.addEventListener('click', function (event) {
             if (event.target.classList.contains('btnDelete')) {
-                // Lấy ID của hàng từ thuộc tính data-id của nút Delete
+                // Get the order ID from the data-id attribute of the Delete button
                 var orderId = event.target.getAttribute('data-id');
-
                 Swal.fire({
                     title: "Are you sure you want to delete this order?",
                     icon: 'warning',
@@ -81,6 +85,7 @@
                     denyButtonText: "Yes" // Deny button moved to the left
                 }).then((result) => {
                     if (!result.isConfirmed) {
+                        var formattedDate = parseDate(searchDateValue);
                         window.location.href = 'Orders/Delete?id=' + orderId;
                     }
                 });

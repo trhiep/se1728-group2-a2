@@ -10,7 +10,7 @@ namespace SE1728_Group2_A2.Utils.ModelHelper
             int total = 0;
             foreach (var orderDetail in order.OrderDetails)
             {
-                total += orderDetail.Quantity * orderDetail.UnitPrice;
+                total += orderDetail.UnitPrice;
             }
             return total.ToString();
         }
@@ -46,6 +46,17 @@ namespace SE1728_Group2_A2.Utils.ModelHelper
             else
             {
                 return formattedAmount.ToString() + amount.Substring(endPoint) + " " + currencyUnit;
+            }
+        }
+
+        public static DateTime GetFormatedDateTimeFromString(string SearchDate)
+        {
+            if (DateTime.TryParseExact(SearchDate, "dd/MM/yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
+            {
+                return parsedDate;
+            } else
+            {
+                return default(DateTime);
             }
         }
 
