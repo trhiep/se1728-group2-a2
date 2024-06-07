@@ -39,7 +39,6 @@ namespace SE1728_Group2_A2.Pages.Orders
 
         public async Task OnGetAsync()
         {
-            Console.WriteLine("Search Date" + SearchedDate);
             DateTime searchDateVal = OrdersHelper.GetFormatedDateTimeFromString(SearchedDate);
             if (searchDateVal == default(DateTime))
             {
@@ -102,6 +101,18 @@ namespace SE1728_Group2_A2.Pages.Orders
 
             // Transfer selected date to page
             DisplayDate = searchDateVal.ToString("yyyy/MM/dd");
+        }
+
+        public IList<OrderDetail> OrderDetails { get; set; }
+
+        public IActionResult OnGetOrderDetails(int orderId)
+        {
+            OrderDetails = _context.OrderDetails.Where(od => od.OrderId == orderId).ToList();
+            foreach (var item in OrderDetails)
+            {
+                Console.WriteLine(item.Product.ProductName + " --- " + item.Quantity);
+            }
+            return Partial("_OrderDetailsPartial", OrderDetails);
         }
     }
 }
