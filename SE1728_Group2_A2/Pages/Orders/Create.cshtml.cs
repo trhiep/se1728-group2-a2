@@ -49,10 +49,10 @@ namespace SE1728_Group2_A2.Pages.Orders
 
                 // Add order to DB
                 _context.Orders.Add(newOrder);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
 
                 // Add all order details in list to DB
-                if(OrderDetails != null)
+                if (OrderDetails != null)
                 {
                     foreach (var item in OrderDetails)
                     {
@@ -64,7 +64,7 @@ namespace SE1728_Group2_A2.Pages.Orders
                             UnitPrice = item.UnitPrice * item.Quantity
                         };
                         _context.OrderDetails.Add(newOrderDetail);
-                        _context.SaveChanges();
+                        await _context.SaveChangesAsync();
                     }
                 }
             }

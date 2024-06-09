@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using NuGet.Configuration;
 using SE1728_Group2_A2.Models;
 
 namespace SE1728_Group2_A2.Pages.Orders
@@ -21,6 +23,9 @@ namespace SE1728_Group2_A2.Pages.Orders
 
         [BindProperty]
         public Order Order { get; set; } = default!;
+        [BindProperty]
+        public string? OrderDetailsJson { get; set; }
+        public List<OrderDetailsDTO>? OrderDetailsDTO { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
@@ -35,7 +40,34 @@ namespace SE1728_Group2_A2.Pages.Orders
                 return NotFound();
             }
             Order = order;
-           ViewData["StaffId"] = new SelectList(_context.Staffs, "StaffId", "StaffId");
+            List<OrderDetail> OrderDetails = await _context.OrderDetails.Where(od => od.OrderId == id)
+                    .Include(p => p.Product)
+                    .ToListAsync();
+
+            var settings = new JsonSerializerSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            };
+
+            if (OrderDetails.Any())
+            {
+                OrderDetailsDTO = new List<OrderDetailsDTO>();
+                foreach (var item in OrderDetails)
+                {
+                    OrderDetailsDTO newOrderDetails = new OrderDetailsDTO
+                    {
+                        productId = item.ProductId,
+                        productName = item.Product.ProductName,
+                        unitPrice = item.Product.UnitPrice,
+                        quantity = item.Quantity,
+                        totalPrice = item.Product.UnitPrice * item.Quantity
+                    };
+                    OrderDetailsDTO.Add(newOrderDetails);
+                }
+                OrderDetailsJson = JsonConvert.SerializeObject(OrderDetailsDTO, settings);
+                Console.WriteLine(OrderDetailsJson);
+            }
+            ViewData["Products"] = JsonConvert.SerializeObject(_context.Products.ToList(), settings);
             return Page();
         }
 
@@ -43,16 +75,38 @@ namespace SE1728_Group2_A2.Pages.Orders
         // For more details, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
-            if (!ModelState.IsValid)
-            {
-                return Page();
-            }
-
-            _context.Attach(Order).State = EntityState.Modified;
-
+            int id = Order.OrderId;
             try
             {
-                await _context.SaveChangesAsync();
+                if (OrderDetailsJson != null)
+                {
+                    List<OrderDetail> oldOrderDetails = await _context.OrderDetails
+                        .Where(x => x.OrderId == id)
+                        .ToListAsync();
+                    foreach (var item in oldOrderDetails)
+                    {
+                        _context.OrderDetails.Remove(item);
+                        await _context.SaveChangesAsync();
+                    }
+
+                    List<OrderDetail> orderDetails = JsonConvert.DeserializeObject<List<OrderDetail>>(OrderDetailsJson);
+                    if (orderDetails != null)
+                    {
+                        foreach (var item in orderDetails)
+                        {
+                            OrderDetail newOrderDetail = new OrderDetail()
+                            {
+                                OrderId = id,
+                                ProductId = item.ProductId,
+                                Quantity = item.Quantity,
+                                UnitPrice = item.UnitPrice * item.Quantity
+                            };
+                            _context.OrderDetails.Add(newOrderDetail);
+                            await _context.SaveChangesAsync();
+                        }
+                    }
+                }
+                
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -73,5 +127,14 @@ namespace SE1728_Group2_A2.Pages.Orders
         {
           return (_context.Orders?.Any(e => e.OrderId == id)).GetValueOrDefault();
         }
+    }
+
+    public class OrderDetailsDTO
+    {
+        public int productId { get; set; }
+        public string productName { get; set; }
+        public int unitPrice { get; set; }
+        public int quantity { get; set; }
+        public int totalPrice { get; set; }
     }
 }
