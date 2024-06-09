@@ -13,6 +13,14 @@ namespace SE1728_Group2_A2.Pages.Orders
 {
     public class CreateModel : PageModel
     {
+        Staff currentStaff = new Staff()
+        {
+            StaffId = 3,
+            Name = "hieptv2",
+            Password = "password",
+            Role = 0
+        };
+
         private readonly SE1728_Group2_A2.Models.MyStoreContext _context;
 
         public CreateModel(SE1728_Group2_A2.Models.MyStoreContext context)
@@ -20,10 +28,17 @@ namespace SE1728_Group2_A2.Pages.Orders
             _context = context;
         }
 
-        int staffId = 3; // CHANGE STAFF ID HERE AFTER IMPLEMENTED LOGIN
+        public void CheckAccount()
+        {
+            if (currentStaff == null || currentStaff.Role != 0)
+            {
+                Response.Redirect("/Index");
+            }
+        }
 
         public IActionResult OnGet()
         {
+            CheckAccount();
             ViewData["Products"] = JsonConvert.SerializeObject(_context.Products.ToList());
             return Page();
         }
@@ -37,6 +52,7 @@ namespace SE1728_Group2_A2.Pages.Orders
 
         public async Task<IActionResult> OnPostAsync()
         {
+            CheckAccount();
             if (!string.IsNullOrEmpty(OrderDetailsJson))
             {
                 OrderDetails = JsonConvert.DeserializeObject<List<OrderDetail>>(OrderDetailsJson);
@@ -44,7 +60,7 @@ namespace SE1728_Group2_A2.Pages.Orders
                 Order newOrder = new Order()
                 {
                     OrderDate = DateTime.Now,
-                    StaffId = staffId
+                    StaffId = currentStaff.StaffId
                 };
 
                 // Add order to DB
