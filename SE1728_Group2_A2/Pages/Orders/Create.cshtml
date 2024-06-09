@@ -12,7 +12,7 @@
     <div class="col-md-12">
         <form method="post">
             <div class="row">
-                <label class="control-label bold-label">Product</label>
+                <label class="control-label bold-label">Product ID</label>
                 <div class="form-group col-md-9">
                     <input class="form-control" id="txtProductId" type="text" value="" />
                 </div>
@@ -65,7 +65,7 @@
                     <th>Unit Price</th>
                     <th>Quantity</th>
                     <th>Total Price</th>
-                    <th>Action</th>
+                    <th style="text-align: center">Action</th>
                 </tr>
             </thead>
             <tbody id="orderTableBody">
@@ -87,7 +87,7 @@
     <div class="col-md-6">
     </div>
     <div class="col-md-3">
-        <a asp-page="Index" class="form-control btn btn-danger">Cancel</a>
+        <a asp-page="Index" class="form-control btn btn-outline-danger">Cancel</a>
     </div>
 </div>
 
@@ -105,6 +105,12 @@
     .bold-label {
         font-weight: bold;
     }
+
+    .button-group {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+    }
 </style>
 
 @section Scripts {
@@ -114,129 +120,132 @@
 
     <script>
         let totalOrder = 0;
+        let orderDetails = [];
+
+        function getProductList() {
+            return JSON.parse('@Html.Raw(ViewData["Products"])');
+        }
+
         function findProduct() {
             const productId = document.getElementById("txtProductId").value;
-            var products = JSON.parse('@Html.Raw(ViewData["Products"])');
-
-            var foundProduct = products.find(function (product) {
-                return product.ProductId == productId;
-            });
+            const products = getProductList();
+            const foundProduct = products.find(product => product.ProductId == productId);
 
             if (foundProduct) {
-                var productNameElement = document.getElementById("txtProductName");
-                productNameElement.value = foundProduct.ProductName;
-                productNameElement.classList.remove("not-exist");
-                document.getElementById("txtPrice").value = foundProduct.UnitPrice;
-                document.getElementById("txtQuantity").value = "1";
-                document.getElementById("txtTotalPrice").value = foundProduct.UnitPrice;
-                turnButton(1);
+                updateProductDetails(foundProduct);
+                turnButton(true);
             } else {
                 resetVal();
-                turnButton(0);
+                turnButton(false);
             }
         }
 
-        // increase quantity button click
+        function updateProductDetails(product) {
+            const productNameElement = document.getElementById("txtProductName");
+            productNameElement.value = product.ProductName;
+            productNameElement.classList.remove("not-exist");
+            document.getElementById("txtPrice").value = product.UnitPrice;
+            document.getElementById("txtQuantity").value = 1;
+            document.getElementById("txtTotalPrice").value = product.UnitPrice;
+        }
+
+        function updateQuantity(increment) {
+            const productId = document.getElementById("txtProductId").value;
+            const products = getProductList();
+            const foundProduct = products.find(product => product.ProductId == productId);
+            const currentQuantity = Number(document.getElementById("txtQuantity").value);
+            const newQuantity = currentQuantity + increment;
+
+            document.getElementById("txtQuantity").value = newQuantity;
+            document.getElementById("txtTotalPrice").value = foundProduct.UnitPrice * newQuantity;
+            document.getElementById("btnDecrease").disabled = newQuantity <= 1;
+        }
+
         function increaseQuantity() {
-            const productId = document.getElementById("txtProductId").value;
-            var products = JSON.parse('@Html.Raw(ViewData["Products"])');
-
-            var foundProduct = products.find(function (product) {
-                return product.ProductId == productId;
-            });
-
-            const currentQuantity = document.getElementById("txtQuantity").value;
-            var newQuantity = Number(currentQuantity) + 1;
-            document.getElementById("txtQuantity").value = newQuantity;
-            document.getElementById("txtTotalPrice").value = foundProduct.UnitPrice * newQuantity;
-            document.getElementById("btnDecrease").disabled = false;
+            updateQuantity(1);
         }
 
-        // increase quantity button click
         function decreaseQuantity() {
-            const productId = document.getElementById("txtProductId").value;
-            var products = JSON.parse('@Html.Raw(ViewData["Products"])');
-
-            var foundProduct = products.find(function (product) {
-                return product.ProductId == productId;
-            });
-
-            const currentQuantity = document.getElementById("txtQuantity").value;
-            var newQuantity = Number(currentQuantity) - 1;
-            document.getElementById("txtQuantity").value = newQuantity;
-            document.getElementById("txtTotalPrice").value = foundProduct.UnitPrice * newQuantity;
-
-            if (newQuantity === 1) {
-                document.getElementById("btnDecrease").disabled = true;
+            if (Number(document.getElementById("txtQuantity").value) > 1) {
+                updateQuantity(-1);
             }
         }
 
-        // add product to order details list
-        let orderDetails = [];
         function addProductToList() {
-            var txtProductId = document.getElementById("txtProductId").value;
-            var txtQuantity = parseInt(document.getElementById("txtQuantity").value, 10);
-            var products = JSON.parse('@Html.Raw(ViewData["Products"])');
-            var foundProduct = products.find(function (product) {
-                return product.ProductId == txtProductId;
-            });
-            let existingProduct = orderDetails.find(item => item.productId === txtProductId);
+            const txtProductId = document.getElementById("txtProductId").value;
+            const txtQuantity = parseInt(document.getElementById("txtQuantity").value, 10);
+            const products = getProductList();
+            const foundProduct = products.find(product => product.ProductId == txtProductId);
+            const existingProduct = orderDetails.find(item => item.productId === txtProductId);
 
             if (existingProduct) {
-                var newQuantity = existingProduct.quantity + txtQuantity;
-                existingProduct.quantity = newQuantity;
-                existingProduct.totalPrice = newQuantity * foundProduct.UnitPrice;
+                existingProduct.quantity += txtQuantity;
+                existingProduct.totalPrice = existingProduct.quantity * foundProduct.UnitPrice;
             } else {
-                let orderDetail = {
+                orderDetails.push({
                     productId: txtProductId,
                     productName: foundProduct.ProductName,
                     unitPrice: foundProduct.UnitPrice,
                     quantity: txtQuantity,
                     totalPrice: txtQuantity * foundProduct.UnitPrice
-                };
-                orderDetails.push(orderDetail);
+                });
             }
-            document.getElementById('orderForm').addEventListener('submit', function () {
+
+            document.getElementById('orderForm').addEventListener('submit', () => {
                 document.getElementById('orderDetailsInput').value = JSON.stringify(orderDetails);
             });
-            console.log(orderDetails);
-            displayOrderDetails();
-            resetValAfterAddToList()
 
+            displayOrderDetails();
+            resetValAfterAddToList();
         }
 
         function displayOrderDetails() {
-            let orderTableBody = document.getElementById("orderTableBody");
+            const orderTableBody = document.getElementById("orderTableBody");
             orderTableBody.innerHTML = "";
             totalOrder = 0;
+
             orderDetails.forEach((orderDetail, index) => {
-                let totalPrice = orderDetail.unitPrice * orderDetail.quantity;
-                totalOrder += totalPrice;
-                let row = document.createElement("tr");
+                totalOrder += orderDetail.totalPrice;
+                const row = document.createElement("tr");
                 row.innerHTML = `
-                            <td>${index + 1}</td>
-                            <td>${orderDetail.productId}</td>
-                            <td>${orderDetail.productName}</td>
-                            <td>${getFormatedCurrency(orderDetail.unitPrice)}</td>
-                            <td>${orderDetail.quantity}</td>
-                            <td>${getFormatedCurrency(totalPrice)}</td>
-                            <td><button class="btn btn-outline-danger" onclick="removeProduct(${index})">X</button></td>
-                        `;
+                    <td>${index + 1}</td>
+                    <td>${orderDetail.productId}</td>
+                    <td>${orderDetail.productName}</td>
+                    <td>${getFormattedCurrency(orderDetail.unitPrice)}</td>
+                    <td>${orderDetail.quantity}</td>
+                    <td>${getFormattedCurrency(orderDetail.totalPrice)}</td>
+                    <td class="button-group">
+                        <button class="btn btn-outline-danger squareBtn" onclick="removeProduct(${index})">X</button>
+                        <button class="btn btn-outline-warning squareBtn" onclick="changeOrderQuantity(${index}, -1)">-</button>
+                        <button class="btn btn-outline-primary squareBtn" onclick="changeOrderQuantity(${index}, 1)">+</button>
+                    </td>
+                `;
                 orderTableBody.appendChild(row);
             });
-            document.getElementById("txtTotalOrder").innerText = "Total: " + getFormatedCurrency(totalOrder);
+
+            document.getElementById("txtTotalOrder").innerText = "Total: " + getFormattedCurrency(totalOrder);
+        }
+
+        function changeOrderQuantity(index, change) {
+            const orderDetail = orderDetails[index];
+            const products = getProductList();
+            const foundProduct = products.find(product => product.ProductId == orderDetail.productId);
+
+            if (orderDetail.quantity + change > 0) {
+                orderDetail.quantity += change;
+                orderDetail.totalPrice = orderDetail.quantity * foundProduct.UnitPrice;
+                displayOrderDetails();
+            }
         }
 
         function removeProduct(index) {
             orderDetails.splice(index, 1);
-            if (orderDetails.length < 1) {
-                document.getElementById("btnCreate").disabled = true;
-            }
+            document.getElementById("btnCreate").disabled = orderDetails.length < 1;
             displayOrderDetails();
         }
 
         function resetVal() {
-            var productNameElement = document.getElementById("txtProductName");
+            const productNameElement = document.getElementById("txtProductName");
             productNameElement.value = "This product does not exist";
             productNameElement.classList.add("not-exist");
             document.getElementById("txtPrice").value = "0";
@@ -245,7 +254,7 @@
         }
 
         function resetValAfterAddToList() {
-            var productNameElement = document.getElementById("txtProductName");
+            const productNameElement = document.getElementById("txtProductName");
             productNameElement.value = "###";
             productNameElement.classList.remove("not-exist");
             document.getElementById("txtPrice").value = "0";
@@ -253,43 +262,21 @@
             document.getElementById("txtQuantity").value = "0";
             document.getElementById("txtTotalPrice").value = "0";
             document.getElementById("btnCreate").disabled = false;
-            turnButton(0);
+            turnButton(false);
         }
 
-        function turnButton(mode) {
-            if (mode === 1) {
-                document.getElementById("btnIncrease").disabled = false;
-                document.getElementById("btnAdd").disabled = false;
-            } else {
-                document.getElementById("btnDecrease").disabled = true;
-                document.getElementById("btnIncrease").disabled = true;
-                document.getElementById("btnAdd").disabled = true;
-            }
+        function turnButton(enable) {
+            document.getElementById("btnIncrease").disabled = !enable;
+            document.getElementById("btnAdd").disabled = !enable;
+            document.getElementById("btnDecrease").disabled = !enable;
         }
 
-        function getFormatedCurrency(amount) {
+        function getFormattedCurrency(amount) {
             const currencyUnit = "VND";
             const parts = String(amount).split(".");
-            let formattedIntegerPart = "";
-            let count = 0;
-
-            for (let i = parts[0].length - 1; i >= 0; i--) {
-                formattedIntegerPart = parts[0][i] + formattedIntegerPart;
-                count++;
-
-                if (count % 3 === 0 && i > 0) {
-                    formattedIntegerPart = "," + formattedIntegerPart;
-                }
-            }
-
-            if (parts.length === 1) {
-                return formattedIntegerPart + " " + currencyUnit;
-            } else {
-                return formattedIntegerPart + "." + parts[1] + " " + currencyUnit;
-            }
+            const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            return parts.length === 1 ? `${integerPart} ${currencyUnit}` : `${integerPart}.${parts[1]} ${currencyUnit}`;
         }
-
-
-
     </script>
+
 }

@@ -4,6 +4,7 @@
 
 @{
     ViewData["Title"] = "Index";
+    int count = 1;
 }
 
 <h1>@ViewData["PageHeading"]</h1>
@@ -13,14 +14,23 @@
 </p>
 <form asp-page="./Index" method="post">
     <label for="searchDate">Search orders by date:</label>
-    <input id="searchDate" asp-for="@Model.SearchDate" class="form-control" />
-    <input type="submit" value="Search" class="btn btn-primary mt-2" />
+    <div class="row align-items-center">
+        <div class="col-md-10">
+            <input id="searchDate" asp-for="@Model.SearchDate" class="form-control" style="height: calc(2.25rem + 2px);" />
+        </div>
+        <div class="col-md-2">
+            <input type="submit" value="Search" class="form-control btn btn-outline-primary" style="height: calc(2.25rem + 2px);" />
+        </div>
+    </div>
 </form>
 <table class="table table-hover mt-3">
     <thead>
         <tr>
             <th>
-                ID
+                No
+            </th>
+            <th>
+                Order ID
             </th>
             <th>
                 Date
@@ -28,7 +38,7 @@
             <th>
                 Total
             </th>
-            <th>
+            <th width="300px" style="text-align: center">
                 Action
             </th>
         </tr>
@@ -38,6 +48,9 @@
         {
             <tr>
                 <td>
+                    @count
+                </td>
+                <td>
                     @Html.DisplayFor(modelItem => item.OrderId)
                 </td>
                 <td>
@@ -46,12 +59,13 @@
                 <td>
                     @OrdersHelper.GetFormatedCurrency(OrdersHelper.CalculateOrderTotal(item))
                 </td>
-                <td>
+                <td style="display:flex; justify-content: center; gap: 0.5rem;">
                     <button class="btn btn-success view-details" data-order-id="@item.OrderId">View Details</button>
                     <a asp-page="./Edit" asp-route-id="@item.OrderId" class="btn btn-warning">Edit</a>
                     <a class="btn btn-danger btnDelete" data-id="@item.OrderId">Delete</a>
                 </td>
             </tr>
+            count++;
         }
     </tbody>
 </table>
@@ -82,6 +96,12 @@
 <style>
     .modal-lg-custom {
         max-width: 60%;
+    }
+
+    .button-group {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
     }
 </style>
 

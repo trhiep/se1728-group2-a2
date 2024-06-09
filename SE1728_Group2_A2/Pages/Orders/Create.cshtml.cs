@@ -32,8 +32,8 @@ namespace SE1728_Group2_A2.Pages.Orders
         public Order Order { get; set; } = default!;
 
         [BindProperty]
-        public string OrderDetailsJson { get; set; }
-        public List<OrderDetail> OrderDetails { get; set; }
+        public string? OrderDetailsJson { get; set; }
+        public List<OrderDetail>? OrderDetails { get; set; }
 
         public async Task<IActionResult> OnPostAsync()
         {
