@@ -9,11 +9,30 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using NuGet.Configuration;
 using SE1728_Group2_A2.Models;
+using SE1728_Group2_A2.Utils.SessionHelper;
 
 namespace SE1728_Group2_A2.Pages.Orders
 {
     public class EditModel : PageModel
     {
+        string editingOrderSessionKey = "editingOrderSessionKey";
+        Staff currentStaff = new Staff()
+        {
+            StaffId = 3,
+            Name = "hieptv2",
+            Password = "password",
+            Role = 0
+        };
+
+        private void CheckAccount()
+        {
+            if (currentStaff == null || currentStaff.Role != 0)
+            {
+                Response.Redirect("/Index");
+                return;
+            }
+        }
+
         private readonly SE1728_Group2_A2.Models.MyStoreContext _context;
 
         public EditModel(SE1728_Group2_A2.Models.MyStoreContext context)
@@ -29,29 +48,41 @@ namespace SE1728_Group2_A2.Pages.Orders
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
+            CheckAccount();
+
+            // Check is received orderid valid
             if (id == null || _context.Orders == null)
             {
-                return NotFound();
+                return RedirectToPage("./Index");
             }
 
+            // get order
             var order =  await _context.Orders.FirstOrDefaultAsync(m => m.OrderId == id);
-            if (order == null)
+            if (order == null || order.StaffId != currentStaff.StaffId)
             {
-                return NotFound();
+                return RedirectToPage("./Index");
             }
             Order = order;
+
+            // Save editing order to session
+            HttpContext.Session.SetObjectAsJson("editingOrderSessionKey", order);
+
+            // get order details of selected order
             List<OrderDetail> OrderDetails = await _context.OrderDetails.Where(od => od.OrderId == id)
                     .Include(p => p.Product)
                     .ToListAsync();
 
+            // settings for json parse
             var settings = new JsonSerializerSettings
             {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore
             };
 
+            // check is this order contains order details
             if (OrderDetails.Any())
             {
                 OrderDetailsDTO = new List<OrderDetailsDTO>();
+                // Map order details to custom DTO
                 foreach (var item in OrderDetails)
                 {
                     OrderDetailsDTO newOrderDetails = new OrderDetailsDTO
@@ -64,9 +95,12 @@ namespace SE1728_Group2_A2.Pages.Orders
                     };
                     OrderDetailsDTO.Add(newOrderDetails);
                 }
+
+                // parse list to json
                 OrderDetailsJson = JsonConvert.SerializeObject(OrderDetailsDTO, settings);
-                Console.WriteLine(OrderDetailsJson);
             }
+
+            // get products json
             ViewData["Products"] = JsonConvert.SerializeObject(_context.Products.ToList(), settings);
             return Page();
         }
@@ -75,11 +109,24 @@ namespace SE1728_Group2_A2.Pages.Orders
         // For more details, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
+            CheckAccount();
+
+            // get editing orderId
             int id = Order.OrderId;
+
+            // check is valid order id
+            var editingOrder = HttpContext.Session.GetObjectFromJson<Order>("editingOrderSessionKey");
+            if (editingOrder == null || editingOrder.OrderId != id)
+            {
+                return RedirectToPage("./Index");
+            }
+
             try
             {
+                // check is user received an json string from font-end
                 if (OrderDetailsJson != null)
                 {
+                    // Remove all old order details
                     List<OrderDetail> oldOrderDetails = await _context.OrderDetails
                         .Where(x => x.OrderId == id)
                         .ToListAsync();
@@ -89,9 +136,11 @@ namespace SE1728_Group2_A2.Pages.Orders
                         await _context.SaveChangesAsync();
                     }
 
+                    // parse received json to list
                     List<OrderDetail> orderDetails = JsonConvert.DeserializeObject<List<OrderDetail>>(OrderDetailsJson);
                     if (orderDetails != null)
                     {
+                        // add all order details to list
                         foreach (var item in orderDetails)
                         {
                             OrderDetail newOrderDetail = new OrderDetail()

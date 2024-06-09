@@ -17,15 +17,27 @@ namespace SE1728_Group2_A2.Pages.Orders
 {
     public class IndexModel : PageModel
     {
+        Staff currentStaff = new Staff()
+        {
+            StaffId = 3,
+            Name = "hieptv2",
+            Password = "password",
+            Role = 0
+        };
+
         private readonly SE1728_Group2_A2.Models.MyStoreContext _context;
+        public void CheckAccount()
+        {
+            if (currentStaff == null || currentStaff.Role != 0)
+            {
+                Response.Redirect("./Index");
+            }
+        }
 
         public IndexModel(SE1728_Group2_A2.Models.MyStoreContext context)
         {
             _context = context;
         }
-
-        int staffId = 3; // CHANGE STAFF ID HERE AFTER IMPLEMENTED LOGIN
-
 
         [BindProperty]
         public string SearchDate { get; set; }
@@ -39,6 +51,8 @@ namespace SE1728_Group2_A2.Pages.Orders
 
         public async Task OnGetAsync()
         {
+            CheckAccount();
+
             DateTime searchDateVal = OrdersHelper.GetFormatedDateTimeFromString(SearchedDate);
             if (searchDateVal == default(DateTime))
             {
@@ -49,30 +63,31 @@ namespace SE1728_Group2_A2.Pages.Orders
             if (_context.Orders != null)
             {
                 Order = await _context.Orders
-                    .Where(o => o.StaffId == staffId).Where(o => o.OrderDate >= searchDateVal && o.OrderDate < tomorrow)
+                    .Where(o => o.StaffId == currentStaff.StaffId).Where(o => o.OrderDate >= searchDateVal && o.OrderDate < tomorrow)
                     .Include(o => o.Staff)
                     .Include(od => od.OrderDetails)
                     .OrderByDescending(o => o.OrderId)
                     .ToListAsync();
                 TransferMessageToPage(searchDateVal);
             }
-
         }
 
-        public async Task OnPostAsync()
+        public async Task<IActionResult> OnPostAsync()
         {
+            CheckAccount();
             DateTime searchDateVal = OrdersHelper.GetFormatedDateTimeFromString(SearchDate);
             var tomorrow = searchDateVal.AddDays(1);
             if (_context.Orders != null)
             {
                 Order = await _context.Orders
-                    .Where(o => o.StaffId == staffId).Where(o => o.OrderDate >= searchDateVal && o.OrderDate < tomorrow)
+                    .Where(o => o.StaffId == currentStaff.StaffId).Where(o => o.OrderDate >= searchDateVal && o.OrderDate < tomorrow)
                     .Include(o => o.Staff)
                     .Include(od => od.OrderDetails)
                     .OrderByDescending(o => o.OrderId)
                     .ToListAsync();
                 TransferMessageToPage(searchDateVal);
             }
+            return Page();
         }
 
         private void TransferMessageToPage(DateTime searchDateVal)
@@ -80,11 +95,11 @@ namespace SE1728_Group2_A2.Pages.Orders
             //  Message of page heading
             if (searchDateVal == DateTime.Today)
             {
-                ViewData["PageHeading"] = "Orders of staff " + staffId + " today";
+                ViewData["PageHeading"] = "Orders of staff " + currentStaff.StaffId + " today";
             }
             else
             {
-                ViewData["PageHeading"] = "Orders of staff " + staffId + " on " + OrdersHelper.GetFormatedDate(searchDateVal);
+                ViewData["PageHeading"] = "Orders of staff " + currentStaff.StaffId + " on " + OrdersHelper.GetFormatedDate(searchDateVal);
             }
 
             // Message of total order on selected date
@@ -103,16 +118,5 @@ namespace SE1728_Group2_A2.Pages.Orders
             DisplayDate = searchDateVal.ToString("yyyy/MM/dd");
         }
 
-        public IList<OrderDetail> OrderDetails { get; set; }
-
-        public IActionResult OnGetOrderDetails(int orderId)
-        {
-            OrderDetails = _context.OrderDetails.Where(od => od.OrderId == orderId).ToList();
-            foreach (var item in OrderDetails)
-            {
-                Console.WriteLine(item.Product.ProductName + " --- " + item.Quantity);
-            }
-            return Partial("_OrderDetailsPartial", OrderDetails);
-        }
     }
 }
