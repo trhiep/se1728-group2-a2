@@ -94,5 +94,30 @@ namespace SE1728_Group2_A2.Pages.Reports
 
             ViewData["Orders"] = orders;
         }
+
+        public IActionResult OnGetOrderDetails(int orderId)
+        {
+            var query = (from od in _context.OrderDetails
+                         join p in _context.Products on od.ProductId equals p.ProductId
+                         join c in _context.Categories on p.CategoryId equals c.CategoryId
+                         where od.OrderId == orderId
+                         select new OrderDetailInfo
+                         {
+                             OrderDetailId = od.OrderDetailId,
+                             OrderId = od.OrderId,
+                             ProductId = od.ProductId,
+                             ProductName = p.ProductName,
+                             CategoryName = c.CategoryName,
+                             Quantity = od.Quantity,
+                             UnitPrice = od.UnitPrice
+                         }).ToList();
+
+            // Initialize ViewData if not initialized
+            ViewData["OrderId"] = orderId;
+            Console.WriteLine(query);
+            ViewData["OrderDetails"] = query;
+
+            return RedirectToPage("ReportDetails", new { orderId, orderDetails = query });
+        }
     }
 }
