@@ -2,9 +2,16 @@
 @model IndexModel
 @{
     ViewData["Title"] = "Home page";
+    var staff = SessionExtensions.GetObjectFromJson<Staff>(HttpContext.Session, "Staff");
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
+
+    <h1 class="display-4">
+        Welcome @if (staff != null)
+        {
+            <text>@staff.Name</text>
+        }
+    </h1>
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
