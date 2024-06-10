@@ -240,7 +240,7 @@
 
         function removeProduct(index) {
             orderDetails.splice(index, 1);
-            document.getElementById("btnSave").disabled = orderDetails.length < 1;
+            document.getElementById("btnCreate").disabled = orderDetails.length < 1;
             displayOrderDetails();
         }
 
