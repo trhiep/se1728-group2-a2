@@ -1,0 +1,282 @@
+﻿@page
+@model SE1728_Group2_A2.Pages.Orders.CreateModel
+@using SE1728_Group2_A2.Utils.ModelHelper
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h4>Create New Order</h4>
+<hr />
+<div class="row">
+    <div class="col-md-12">
+        <form method="post">
+            <div class="row">
+                <label class="control-label bold-label">Product ID</label>
+                <div class="form-group col-md-9">
+                    <input class="form-control" id="txtProductId" type="text" value="" />
+                </div>
+                <div class="form-group col-md-3">
+                    <button id="btnFind" class="form-control btn btn-outline-primary bold-label" type="button" onclick="findProduct()">Find</button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-md-3">
+                    <label class="control-label bold-label">Product Name</label>
+                    <input class="form-control" id="txtProductName" type="text" value="###" readonly />
+                </div>
+                <div class="form-group col-md-3">
+                    <label class="control-label bold-label">Price</label>
+                    <input class="form-control" id="txtPrice" type="text" value="0" readonly />
+                </div>
+                <div class="form-group col-md-3">
+                    <label class="control-label bold-label">Quantity</label>
+                    <div class="input-group">
+                        <span class="input-group-btn" style="margin-right: 15px">
+                            <button id="btnDecrease" class="btn btn-warning squareBtn" type="button" onclick="decreaseQuantity()" disabled>-</button>
+                        </span>
+                        <input class="form-control" style="text-align: center;" id="txtQuantity" type="text" value="0" readonly />
+                        <span class="input-group-btn" style="margin-left: 15px">
+                            <button id="btnIncrease" class="btn btn-primary squareBtn" type="button" onclick="increaseQuantity()" disabled>+</button>
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group col-md-3">
+                    <label class="control-label bold-label">Total Price</label>
+                    <input class="form-control" id="txtTotalPrice" type="text" value="0" readonly />
+                </div>
+            </div>
+            <div class="form-group mt-2">
+                <button id="btnAdd" type="button" value="Add To List" class="form-control btn btn-outline-primary bold-label" onclick="addProductToList()" disabled>Add Product To List</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<hr />
+<div class="row">
+    <div class="col-md-12">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Product ID</th>
+                    <th>Product Name</th>
+                    <th>Unit Price</th>
+                    <th>Quantity</th>
+                    <th>Total Price</th>
+                    <th style="text-align: center">Action</th>
+                </tr>
+            </thead>
+            <tbody id="orderTableBody">
+                <!-- Order details will be display here -->
+            </tbody>
+        </table>
+    </div>
+</div>
+<h5 id="txtTotalOrder">Total: 0 VND</h5>
+
+<hr class="mt-5" />
+<div class="row">
+    <div class="col-md-3">
+        <form method="post" id="orderForm">
+            <input type="hidden" id="orderDetailsInput" name="OrderDetailsJson" />
+            <button id="btnCreate" class="form-control btn btn-success" style="font-weight: bold;" type="submit" disabled>Create Order</button>
+        </form>
+    </div>
+    <div class="col-md-6">
+    </div>
+    <div class="col-md-3">
+        <a asp-page="Index" class="form-control btn btn-outline-danger">Cancel</a>
+    </div>
+</div>
+
+<style>
+    .squareBtn {
+        width: 40px;
+        font-weight: bold
+    }
+
+    .not-exist {
+        font-style: italic;
+        color: red;
+    }
+
+    .bold-label {
+        font-weight: bold;
+    }
+
+    .button-group {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+</style>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        let totalOrder = 0;
+        let orderDetails = [];
+
+        function getProductList() {
+            return JSON.parse('@Html.Raw(ViewData["Products"])');
+        }
+
+        function findProduct() {
+            const productId = document.getElementById("txtProductId").value;
+            const products = getProductList();
+            const foundProduct = products.find(product => product.ProductId == productId);
+
+            if (foundProduct) {
+                updateProductDetails(foundProduct);
+                turnButton(true);
+            } else {
+                resetVal();
+                turnButton(false);
+            }
+        }
+
+        function updateProductDetails(product) {
+            const productNameElement = document.getElementById("txtProductName");
+            productNameElement.value = product.ProductName;
+            productNameElement.classList.remove("not-exist");
+            document.getElementById("txtPrice").value = product.UnitPrice;
+            document.getElementById("txtQuantity").value = 1;
+            document.getElementById("txtTotalPrice").value = product.UnitPrice;
+        }
+
+        function updateQuantity(increment) {
+            const productId = document.getElementById("txtProductId").value;
+            const products = getProductList();
+            const foundProduct = products.find(product => product.ProductId == productId);
+            const currentQuantity = Number(document.getElementById("txtQuantity").value);
+            const newQuantity = currentQuantity + increment;
+
+            document.getElementById("txtQuantity").value = newQuantity;
+            document.getElementById("txtTotalPrice").value = foundProduct.UnitPrice * newQuantity;
+            document.getElementById("btnDecrease").disabled = newQuantity <= 1;
+        }
+
+        function increaseQuantity() {
+            updateQuantity(1);
+        }
+
+        function decreaseQuantity() {
+            if (Number(document.getElementById("txtQuantity").value) > 1) {
+                updateQuantity(-1);
+            }
+        }
+
+        function addProductToList() {
+            const txtProductId = document.getElementById("txtProductId").value;
+            const txtQuantity = parseInt(document.getElementById("txtQuantity").value, 10);
+            const products = getProductList();
+            const foundProduct = products.find(product => product.ProductId == txtProductId);
+            const existingProduct = orderDetails.find(item => item.productId === txtProductId);
+
+            if (existingProduct) {
+                existingProduct.quantity += txtQuantity;
+                existingProduct.totalPrice = existingProduct.quantity * foundProduct.UnitPrice;
+            } else {
+                orderDetails.push({
+                    productId: txtProductId,
+                    productName: foundProduct.ProductName,
+                    unitPrice: foundProduct.UnitPrice,
+                    quantity: txtQuantity,
+                    totalPrice: txtQuantity * foundProduct.UnitPrice
+                });
+            }
+
+            document.getElementById('orderForm').addEventListener('submit', () => {
+                document.getElementById('orderDetailsInput').value = JSON.stringify(orderDetails);
+            });
+
+            displayOrderDetails();
+            resetValAfterAddToList();
+        }
+
+        function displayOrderDetails() {
+            const orderTableBody = document.getElementById("orderTableBody");
+            orderTableBody.innerHTML = "";
+            totalOrder = 0;
+
+            orderDetails.forEach((orderDetail, index) => {
+                totalOrder += orderDetail.totalPrice;
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${orderDetail.productId}</td>
+                    <td>${orderDetail.productName}</td>
+                    <td>${getFormattedCurrency(orderDetail.unitPrice)}</td>
+                    <td>${orderDetail.quantity}</td>
+                    <td>${getFormattedCurrency(orderDetail.totalPrice)}</td>
+                    <td class="button-group">
+                        <button class="btn btn-outline-danger squareBtn" onclick="removeProduct(${index})">X</button>
+                        <button class="btn btn-outline-warning squareBtn" onclick="changeOrderQuantity(${index}, -1)">-</button>
+                        <button class="btn btn-outline-primary squareBtn" onclick="changeOrderQuantity(${index}, 1)">+</button>
+                    </td>
+                `;
+                orderTableBody.appendChild(row);
+            });
+
+            document.getElementById("txtTotalOrder").innerText = "Total: " + getFormattedCurrency(totalOrder);
+        }
+
+        function changeOrderQuantity(index, change) {
+            const orderDetail = orderDetails[index];
+            const products = getProductList();
+            const foundProduct = products.find(product => product.ProductId == orderDetail.productId);
+
+            if (orderDetail.quantity + change > 0) {
+                orderDetail.quantity += change;
+                orderDetail.totalPrice = orderDetail.quantity * foundProduct.UnitPrice;
+                displayOrderDetails();
+            }
+        }
+
+        function removeProduct(index) {
+            orderDetails.splice(index, 1);
+            document.getElementById("btnSave").disabled = orderDetails.length < 1;
+            displayOrderDetails();
+        }
+
+        function resetVal() {
+            const productNameElement = document.getElementById("txtProductName");
+            productNameElement.value = "This product does not exist";
+            productNameElement.classList.add("not-exist");
+            document.getElementById("txtPrice").value = "0";
+            document.getElementById("txtQuantity").value = "0";
+            document.getElementById("txtTotalPrice").value = "0";
+        }
+
+        function resetValAfterAddToList() {
+            const productNameElement = document.getElementById("txtProductName");
+            productNameElement.value = "###";
+            productNameElement.classList.remove("not-exist");
+            document.getElementById("txtPrice").value = "0";
+            document.getElementById("txtProductId").value = "";
+            document.getElementById("txtQuantity").value = "0";
+            document.getElementById("txtTotalPrice").value = "0";
+            document.getElementById("btnCreate").disabled = false;
+            turnButton(false);
+        }
+
+        function turnButton(enable) {
+            document.getElementById("btnIncrease").disabled = !enable;
+            document.getElementById("btnAdd").disabled = !enable;
+            document.getElementById("btnDecrease").disabled = !enable;
+        }
+
+        function getFormattedCurrency(amount) {
+            const currencyUnit = "VND";
+            const parts = String(amount).split(".");
+            const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            return parts.length === 1 ? `${integerPart} ${currencyUnit}` : `${integerPart}.${parts[1]} ${currencyUnit}`;
+        }
+    </script>
+
+}

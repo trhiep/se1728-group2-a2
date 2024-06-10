@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using SE1728_Group2_A2.Models;
 
-namespace SE1728_Group2_A2.Pages.OrdersManagement
+namespace SE1728_Group2_A2.Pages.Staffs
 {
     public class DeleteModel : PageModel
     {
@@ -19,40 +19,40 @@ namespace SE1728_Group2_A2.Pages.OrdersManagement
         }
 
         [BindProperty]
-      public Order Order { get; set; } = default!;
+      public Staff Staff { get; set; } = default!;
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
-            if (id == null || _context.Orders == null)
+            if (id == null || _context.Staffs == null)
             {
                 return NotFound();
             }
 
-            var order = await _context.Orders.FirstOrDefaultAsync(m => m.OrderId == id);
+            var staff = await _context.Staffs.FirstOrDefaultAsync(m => m.StaffId == id);
 
-            if (order == null)
+            if (staff == null)
             {
                 return NotFound();
             }
             else 
             {
-                Order = order;
+                Staff = staff;
             }
             return Page();
         }
 
         public async Task<IActionResult> OnPostAsync(int? id)
         {
-            if (id == null || _context.Orders == null)
+            if (id == null || _context.Staffs == null)
             {
                 return NotFound();
             }
-            var order = await _context.Orders.FindAsync(id);
+            var staff = await _context.Staffs.FindAsync(id);
 
-            if (order != null)
+            if (staff != null)
             {
-                Order = order;
-                _context.Orders.Remove(Order);
+                Staff = staff;
+                _context.Staffs.Remove(Staff);
                 await _context.SaveChangesAsync();
             }
 

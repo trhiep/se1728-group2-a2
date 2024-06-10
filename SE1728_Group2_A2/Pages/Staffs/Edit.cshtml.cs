@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SE1728_Group2_A2.Models;
 
-namespace SE1728_Group2_A2.Pages.OrdersManagement
+namespace SE1728_Group2_A2.Pages.Staffs
 {
     public class EditModel : PageModel
     {
@@ -20,22 +20,21 @@ namespace SE1728_Group2_A2.Pages.OrdersManagement
         }
 
         [BindProperty]
-        public Order Order { get; set; } = default!;
+        public Staff Staff { get; set; } = default!;
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
-            if (id == null || _context.Orders == null)
+            if (id == null || _context.Staffs == null)
             {
                 return NotFound();
             }
 
-            var order =  await _context.Orders.FirstOrDefaultAsync(m => m.OrderId == id);
-            if (order == null)
+            var staff =  await _context.Staffs.FirstOrDefaultAsync(m => m.StaffId == id);
+            if (staff == null)
             {
                 return NotFound();
             }
-            Order = order;
-           ViewData["StaffId"] = new SelectList(_context.Staffs, "StaffId", "StaffId");
+            Staff = staff;
             return Page();
         }
 
@@ -48,7 +47,7 @@ namespace SE1728_Group2_A2.Pages.OrdersManagement
                 return Page();
             }
 
-            _context.Attach(Order).State = EntityState.Modified;
+            _context.Attach(Staff).State = EntityState.Modified;
 
             try
             {
@@ -56,7 +55,7 @@ namespace SE1728_Group2_A2.Pages.OrdersManagement
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!OrderExists(Order.OrderId))
+                if (!StaffExists(Staff.StaffId))
                 {
                     return NotFound();
                 }
@@ -66,12 +65,12 @@ namespace SE1728_Group2_A2.Pages.OrdersManagement
                 }
             }
 
-            return RedirectToPage("./Index");
+            return RedirectToPage("./Details", new { id = Staff.StaffId });
         }
 
-        private bool OrderExists(int id)
+        private bool StaffExists(int id)
         {
-          return (_context.Orders?.Any(e => e.OrderId == id)).GetValueOrDefault();
+          return (_context.Staffs?.Any(e => e.StaffId == id)).GetValueOrDefault();
         }
     }
 }

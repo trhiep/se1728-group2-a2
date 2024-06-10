@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using SE1728_Group2_A2.Models;
 
-namespace SE1728_Group2_A2.Pages.OrdersManagement
+namespace SE1728_Group2_A2.Pages.Staffs
 {
     public class DetailsModel : PageModel
     {
@@ -18,23 +18,23 @@ namespace SE1728_Group2_A2.Pages.OrdersManagement
             _context = context;
         }
 
-      public Order Order { get; set; } = default!; 
+      public Staff Staff { get; set; } = default!; 
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
-            if (id == null || _context.Orders == null)
+            if (id == null || _context.Staffs == null)
             {
                 return NotFound();
             }
 
-            var order = await _context.Orders.FirstOrDefaultAsync(m => m.OrderId == id);
-            if (order == null)
+            var staff = await _context.Staffs.FirstOrDefaultAsync(m => m.StaffId == id);
+            if (staff == null)
             {
                 return NotFound();
             }
             else 
             {
-                Order = order;
+                Staff = staff;
             }
             return Page();
         }

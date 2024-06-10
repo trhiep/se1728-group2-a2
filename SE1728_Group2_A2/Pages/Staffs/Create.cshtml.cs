@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SE1728_Group2_A2.Models;
 
-namespace SE1728_Group2_A2.Pages.OrdersManagement
+namespace SE1728_Group2_A2.Pages.Staffs
 {
     public class CreateModel : PageModel
     {
@@ -20,23 +20,22 @@ namespace SE1728_Group2_A2.Pages.OrdersManagement
 
         public IActionResult OnGet()
         {
-        ViewData["StaffId"] = new SelectList(_context.Staffs, "StaffId", "StaffId");
             return Page();
         }
 
         [BindProperty]
-        public Order Order { get; set; } = default!;
+        public Staff Staff { get; set; } = default!;
         
 
         // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
         public async Task<IActionResult> OnPostAsync()
         {
-          if (!ModelState.IsValid || _context.Orders == null || Order == null)
+          if (!ModelState.IsValid || _context.Staffs == null || Staff == null)
             {
                 return Page();
             }
 
-            _context.Orders.Add(Order);
+            _context.Staffs.Add(Staff);
             await _context.SaveChangesAsync();
 
             return RedirectToPage("./Index");

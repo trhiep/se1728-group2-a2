@@ -7,25 +7,68 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/SE1728_Group2_A2.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
+    @{
+        var staff = SessionExtensions.GetObjectFromJson<Staff>(Context.Session, "Staff");
+    }
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">SE1728_Group2_A2</a>
+                <a class="navbar-brand" asp-area="" asp-page="/Index">Home</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
-                        </li>
+                        @if (staff != null)
+                        {
+                            <li class="nav-item" style="float:right;">
+                                <a class="nav-link text-dark" asp-area="" asp-page="/Staffs/Login">Report</a>
+                            </li>
+                            if (staff.Role == 1)
+                            {
+                                <li class="nav-item" style="float:right;">
+                                    <a class="nav-link text-dark" asp-area="" asp-page="/Staffs/Login">Product</a>
+                                </li>
+                                <li class="nav-item" style="float:right;">
+                                    <a class="nav-link text-dark" asp-area="" asp-page="/Staffs/Login">Staff</a>
+                                </li>
+                            }
+                            else if (staff.Role == 0)
+                            {
+                                <li class="nav-item" style="float:right;">
+                                    <a class="nav-link text-dark" asp-area="" asp-page="/Staffs/Login">Order</a>
+                                </li>
+                            }
+                        }
+
                     </ul>
+
+                    <div class="dropdown">
+                        <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+                            Menu
+                        </button>
+                        <ul class="dropdown-menu">
+                            @if (staff == null)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-page="/Staffs/Login">Login</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-page="/Staffs/Details" asp-route-id="@staff.StaffId">Profile</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a asp-page="/Staffs/Login" asp-area="" asp-page-handler="Logout" class="nav-link text-dark">Logout (@staff.Name)</a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
                 </div>
             </div>
         </nav>
@@ -43,8 +86,12 @@
     </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

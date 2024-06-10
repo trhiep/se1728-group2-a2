@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using SE1728_Group2_A2.Models;
 
-namespace SE1728_Group2_A2.Pages.OrdersManagement
+namespace SE1728_Group2_A2.Pages.Staffs
 {
     public class IndexModel : PageModel
     {
@@ -18,14 +18,13 @@ namespace SE1728_Group2_A2.Pages.OrdersManagement
             _context = context;
         }
 
-        public IList<Order> Order { get;set; } = default!;
+        public IList<Staff> Staff { get;set; } = default!;
 
         public async Task OnGetAsync()
         {
-            if (_context.Orders != null)
+            if (_context.Staffs != null)
             {
-                Order = await _context.Orders
-                .Include(o => o.Staff).ToListAsync();
+                Staff = await _context.Staffs.ToListAsync();
             }
         }
     }
