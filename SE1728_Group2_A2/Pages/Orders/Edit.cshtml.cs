@@ -16,21 +16,14 @@ namespace SE1728_Group2_A2.Pages.Orders
     public class EditModel : PageModel
     {
         string editingOrderSessionKey = "editingOrderSessionKey";
-        Staff currentStaff = new Staff()
-        {
-            StaffId = 3,
-            Name = "hieptv2",
-            Password = "password",
-            Role = 0
-        };
 
-        private void CheckAccount()
+        private bool IsValidAccount(Staff staff)
         {
-            if (currentStaff == null || currentStaff.Role != 0)
+            if (staff == null || staff.Role != 0)
             {
-                Response.Redirect("/Index");
-                return;
+                return false;
             }
+            return true;
         }
 
         private readonly SE1728_Group2_A2.Models.MyStoreContext _context;
@@ -48,133 +41,146 @@ namespace SE1728_Group2_A2.Pages.Orders
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
-            CheckAccount();
-
-            // Check is received orderid valid
-            if (id == null || _context.Orders == null)
+            Staff currentStaff = HttpContext.Session.GetObjectFromJson<Staff>("Staff");
+            if (IsValidAccount(currentStaff))
             {
-                return RedirectToPage("./Index");
-            }
-
-            // get order
-            var order =  await _context.Orders.FirstOrDefaultAsync(m => m.OrderId == id);
-            if (order == null || order.StaffId != currentStaff.StaffId)
-            {
-                return RedirectToPage("./Index");
-            }
-            Order = order;
-
-            // Save editing order to session
-            HttpContext.Session.SetObjectAsJson("editingOrderSessionKey", order);
-
-            // get order details of selected order
-            List<OrderDetail> OrderDetails = await _context.OrderDetails.Where(od => od.OrderId == id)
-                    .Include(p => p.Product)
-                    .ToListAsync();
-
-            // settings for json parse
-            var settings = new JsonSerializerSettings
-            {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-            };
-
-            // check is this order contains order details
-            if (OrderDetails.Any())
-            {
-                OrderDetailsDTO = new List<OrderDetailsDTO>();
-                // Map order details to custom DTO
-                foreach (var item in OrderDetails)
+                // Check is received orderid valid
+                if (id == null || _context.Orders == null)
                 {
-                    OrderDetailsDTO newOrderDetails = new OrderDetailsDTO
-                    {
-                        productId = item.ProductId,
-                        productName = item.Product.ProductName,
-                        unitPrice = item.Product.UnitPrice,
-                        quantity = item.Quantity,
-                        totalPrice = item.Product.UnitPrice * item.Quantity
-                    };
-                    OrderDetailsDTO.Add(newOrderDetails);
+                    return RedirectToPage("./Index");
                 }
 
-                // parse list to json
-                OrderDetailsJson = JsonConvert.SerializeObject(OrderDetailsDTO, settings);
-            }
+                // get order
+                var order = await _context.Orders.FirstOrDefaultAsync(m => m.OrderId == id);
+                if (order == null || order.StaffId != currentStaff.StaffId)
+                {
+                    return RedirectToPage("./Index");
+                }
+                Order = order;
 
-            // get products json
-            ViewData["Products"] = JsonConvert.SerializeObject(_context.Products.ToList(), settings);
-            return Page();
+                // Save editing order to session
+                HttpContext.Session.SetObjectAsJson("editingOrderSessionKey", order);
+
+                // get order details of selected order
+                List<OrderDetail> OrderDetails = await _context.OrderDetails.Where(od => od.OrderId == id)
+                        .Include(p => p.Product)
+                        .ToListAsync();
+
+                // settings for json parse
+                var settings = new JsonSerializerSettings
+                {
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                };
+
+                // check is this order contains order details
+                if (OrderDetails.Any())
+                {
+                    OrderDetailsDTO = new List<OrderDetailsDTO>();
+                    // Map order details to custom DTO
+                    foreach (var item in OrderDetails)
+                    {
+                        OrderDetailsDTO newOrderDetails = new OrderDetailsDTO
+                        {
+                            productId = item.ProductId,
+                            productName = item.Product.ProductName,
+                            unitPrice = item.Product.UnitPrice,
+                            quantity = item.Quantity,
+                            totalPrice = item.Product.UnitPrice * item.Quantity
+                        };
+                        OrderDetailsDTO.Add(newOrderDetails);
+                    }
+
+                    // parse list to json
+                    OrderDetailsJson = JsonConvert.SerializeObject(OrderDetailsDTO, settings);
+                }
+
+                // get products json
+                ViewData["Products"] = JsonConvert.SerializeObject(_context.Products.ToList(), settings);
+                return Page();
+
+            }
+            else
+            {
+                return RedirectToPage("/Index");
+            }
         }
 
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
-            CheckAccount();
-
-            // get editing orderId
-            int id = Order.OrderId;
-
-            // check is valid order id
-            var editingOrder = HttpContext.Session.GetObjectFromJson<Order>("editingOrderSessionKey");
-            if (editingOrder == null || editingOrder.OrderId != id)
+            Staff currentStaff = HttpContext.Session.GetObjectFromJson<Staff>("Staff");
+            if(IsValidAccount(currentStaff))
             {
-                return RedirectToPage("./Index");
-            }
+                // get editing orderId
+                int id = Order.OrderId;
 
-            try
-            {
-                // check is user received an json string from font-end
-                if (OrderDetailsJson != null)
+                // check is valid order id
+                var editingOrder = HttpContext.Session.GetObjectFromJson<Order>("editingOrderSessionKey");
+                if (editingOrder == null || editingOrder.OrderId != id)
                 {
-                    // Remove all old order details
-                    List<OrderDetail> oldOrderDetails = await _context.OrderDetails
-                        .Where(x => x.OrderId == id)
-                        .ToListAsync();
-                    foreach (var item in oldOrderDetails)
-                    {
-                        _context.OrderDetails.Remove(item);
-                        await _context.SaveChangesAsync();
-                    }
+                    return RedirectToPage("./Index");
+                }
 
-                    // parse received json to list
-                    List<OrderDetail> orderDetails = JsonConvert.DeserializeObject<List<OrderDetail>>(OrderDetailsJson);
-                    if (orderDetails != null)
+                try
+                {
+                    // check is user received an json string from font-end
+                    if (OrderDetailsJson != null)
                     {
-                        // add all order details to list
-                        foreach (var item in orderDetails)
+                        // Remove all old order details
+                        List<OrderDetail> oldOrderDetails = await _context.OrderDetails
+                            .Where(x => x.OrderId == id)
+                            .ToListAsync();
+                        foreach (var item in oldOrderDetails)
                         {
-                            OrderDetail newOrderDetail = new OrderDetail()
-                            {
-                                OrderId = id,
-                                ProductId = item.ProductId,
-                                Quantity = item.Quantity,
-                                UnitPrice = item.UnitPrice * item.Quantity
-                            };
-                            _context.OrderDetails.Add(newOrderDetail);
+                            _context.OrderDetails.Remove(item);
                             await _context.SaveChangesAsync();
                         }
+
+                        // parse received json to list
+                        List<OrderDetail> orderDetails = JsonConvert.DeserializeObject<List<OrderDetail>>(OrderDetailsJson);
+                        if (orderDetails != null)
+                        {
+                            // add all order details to list
+                            foreach (var item in orderDetails)
+                            {
+                                OrderDetail newOrderDetail = new OrderDetail()
+                                {
+                                    OrderId = id,
+                                    ProductId = item.ProductId,
+                                    Quantity = item.Quantity,
+                                    UnitPrice = item.UnitPrice * item.Quantity
+                                };
+                                _context.OrderDetails.Add(newOrderDetail);
+                                await _context.SaveChangesAsync();
+                            }
+                        }
+                    }
+
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!OrderExists(Order.OrderId))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
                     }
                 }
-                
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!OrderExists(Order.OrderId))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
 
-            return RedirectToPage("./Index");
+                return RedirectToPage("./Index");
+            }
+            else
+            {
+                return RedirectToPage("/Index");
+            }
         }
 
         private bool OrderExists(int id)
         {
-          return (_context.Orders?.Any(e => e.OrderId == id)).GetValueOrDefault();
+            return (_context.Orders?.Any(e => e.OrderId == id)).GetValueOrDefault();
         }
     }
 
