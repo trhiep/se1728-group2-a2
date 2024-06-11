@@ -1,13 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Server.HttpSys;
 using SE1728_Group2_A2.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using MysessionHelper = SE1728_Group2_A2.Utils.SessionHelper;
 
 namespace SE1728_Group2_A2.Pages.Reports
 {
     public class ReportOrdersModel : PageModel
-    {
+    {       
         private readonly MyStoreContext _context;
 
         public ReportOrdersModel(MyStoreContext context)
@@ -21,15 +24,24 @@ namespace SE1728_Group2_A2.Pages.Reports
         [BindProperty, Display(Name = "End Date")]
         public DateTime EndDate { get; set; }
 
-        public void OnGet()
+        public IActionResult OnGet()
         {
+            if (!IsUserAuthenticated())
+            {
+                return RedirectToLoginPage();
+            }
             EndDate = DateTime.Now;
             StartDate = DateTime.Now.AddMonths(-1);
             LoadAllOrder(StartDate, EndDate);
+            return Page();
         }
 
         public IActionResult OnPost()
         {
+            if (!IsUserAuthenticated())
+            {
+                return RedirectToLoginPage();
+            }
             if (!ModelState.IsValid)
             {
                 return Page();
@@ -39,17 +51,35 @@ namespace SE1728_Group2_A2.Pages.Reports
             return Page();
         }
 
+        private bool IsUserAuthenticated()
+        {
+            var account = SE1728_Group2_A2.Utils.SessionHelper.SessionExtensions.GetObjectFromJson<Staff>(HttpContext.Session, "Staff");
+            return account != null;
+        }
+
+        private IActionResult RedirectToLoginPage()
+        {
+            return RedirectToPage("/Staffs/Login");
+        }
+
         private void LoadAllOrder(DateTime startDate, DateTime endDate)
         {
-            var account = 0; // Placeholder for actual account logic
-
-            if (account == 0) // Admin
+            // Placeholder for actual account logic
+            var account = SE1728_Group2_A2.Utils.SessionHelper.SessionExtensions.GetObjectFromJson<Staff>(HttpContext.Session, "Staff");
+            if (account != null)
             {
-                LoadAllOrderForAdmin(startDate, endDate);
+                if (account.Role == 0) // Admin
+                {
+                    LoadAllOrderForAdmin(startDate, endDate);
+                }
+                else
+                {
+                    LoadAllOrderStaff(account.Role, startDate, endDate);
+                }
             }
             else
             {
-                LoadAllOrderStaff(account, startDate, endDate);
+                RedirectToPage("/Staffs/Login");
             }
         }
 

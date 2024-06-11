@@ -38,11 +38,7 @@ namespace SE1728_Group2_A2.Pages.Reports
             ViewData["OrderId"] = orderId;
             Console.WriteLine(query);
             ViewData["OrderDetails"] = query;
-            
-
-            //// Set ViewData for use in Razor view
-            //ViewData["OrderId"] = OrderId;
-            //ViewData["OrderDetails"] = OrderDetails;
+                      
         }
     }
 }

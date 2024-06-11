@@ -7,6 +7,77 @@
     int count = 1;
 }
 
+<style>
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: #f8f9fa;
+    }
+
+    .container {
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-top: 20px;
+    }
+
+    h2 {
+        color: #343a40;
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        font-weight: bold;
+    }
+
+    .form-control {
+        border-radius: 4px;
+        border: 1px solid #ced4da;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+        border-radius: 4px;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+
+    .table {
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+        .table thead th {
+            background-color: #343a40;
+            color: white;
+        }
+
+        .table tbody tr:nth-child(odd) {
+            background-color: #f8f9fa;
+        }
+
+        .table tbody tr:hover {
+            background-color: #e9ecef;
+            cursor: pointer;
+        }
+
+    .modal-content {
+        border-radius: 8px;
+    }
+
+    #orderDetailsModal .modal-dialog {
+        max-width: 80%;
+    }
+
+    #orderDetailsModal .modal-body {
+        padding: 20px;
+    }
+</style>
+
 <div class="container">
     <h2>@ViewData["Title"]</h2>
     <form method="post">
@@ -14,13 +85,13 @@
             <div class="col-md-5">
                 <div class="form-group">
                     <label asp-for="StartDate"></label>
-                    <input asp-for="StartDate" class="form-control" type="date" />
+                    <input asp-for="StartDate" class="form-control" type="text" id="dateStart" />
                 </div>
             </div>
             <div class="col-md-5">
                 <div class="form-group">
                     <label asp-for="EndDate"></label>
-                    <input asp-for="EndDate" class="form-control" type="date" />
+                    <input asp-for="EndDate" class="form-control" type="text" id="dateEnd" />
                 </div>
             </div>
             <div class="col-md-2 d-flex flex-column justify-content-end align-items-center">
@@ -71,8 +142,8 @@
     </div>
 </div>
 
-
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
         $(document).ready(function () {
             // Add click event listener to rows
@@ -93,6 +164,16 @@
                 });
             });
         });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            flatpickr("#dateStart", {
+                dateFormat: "d/m/Y",
+                maxDate: "today"
+            });
+            flatpickr("#dateEnd", {
+                dateFormat: "d/m/Y",
+                maxDate: "today"
+            });
+        });
     </script>
 }
-
