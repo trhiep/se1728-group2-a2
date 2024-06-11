@@ -8,19 +8,12 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
 using SE1728_Group2_A2.Models;
+using SE1728_Group2_A2.Utils.SessionHelper;
 
 namespace SE1728_Group2_A2.Pages.Orders
 {
     public class CreateModel : PageModel
     {
-        Staff currentStaff = new Staff()
-        {
-            StaffId = 3,
-            Name = "hieptv2",
-            Password = "password",
-            Role = 0
-        };
-
         private readonly SE1728_Group2_A2.Models.MyStoreContext _context;
 
         public CreateModel(SE1728_Group2_A2.Models.MyStoreContext context)
@@ -28,19 +21,29 @@ namespace SE1728_Group2_A2.Pages.Orders
             _context = context;
         }
 
-        public void CheckAccount()
+        private bool IsValidAccount(Staff staff)
         {
-            if (currentStaff == null || currentStaff.Role != 0)
+            if (staff == null || staff.Role != 0)
             {
-                Response.Redirect("/Index");
+                return false;
             }
+            return true;
         }
 
         public IActionResult OnGet()
         {
-            CheckAccount();
-            ViewData["Products"] = JsonConvert.SerializeObject(_context.Products.ToList());
-            return Page();
+            Staff currentStaff = HttpContext.Session.GetObjectFromJson<Staff>("Staff");
+            if (IsValidAccount(currentStaff))
+            {
+                ViewData["Products"] = JsonConvert.SerializeObject(_context.Products.ToList());
+                return Page();
+            }
+            else
+            {
+                return RedirectToPage("/Index");
+            }
+            
+            
         }
 
         [BindProperty]
@@ -52,40 +55,46 @@ namespace SE1728_Group2_A2.Pages.Orders
 
         public async Task<IActionResult> OnPostAsync()
         {
-            CheckAccount();
-            if (!string.IsNullOrEmpty(OrderDetailsJson))
+            Staff currentStaff = HttpContext.Session.GetObjectFromJson<Staff>("Staff");
+            if (IsValidAccount(currentStaff))
             {
-                OrderDetails = JsonConvert.DeserializeObject<List<OrderDetail>>(OrderDetailsJson);
-                // Create a new order
-                Order newOrder = new Order()
+                if (!string.IsNullOrEmpty(OrderDetailsJson))
                 {
-                    OrderDate = DateTime.Now,
-                    StaffId = currentStaff.StaffId
-                };
-
-                // Add order to DB
-                _context.Orders.Add(newOrder);
-                await _context.SaveChangesAsync();
-
-                // Add all order details in list to DB
-                if (OrderDetails != null)
-                {
-                    foreach (var item in OrderDetails)
+                    OrderDetails = JsonConvert.DeserializeObject<List<OrderDetail>>(OrderDetailsJson);
+                    // Create a new order
+                    Order newOrder = new Order()
                     {
-                        OrderDetail newOrderDetail = new OrderDetail()
+                        OrderDate = DateTime.Now,
+                        StaffId = currentStaff.StaffId
+                    };
+
+                    // Add order to DB
+                    _context.Orders.Add(newOrder);
+                    await _context.SaveChangesAsync();
+
+                    // Add all order details in list to DB
+                    if (OrderDetails != null)
+                    {
+                        foreach (var item in OrderDetails)
                         {
-                            OrderId = newOrder.OrderId,
-                            ProductId = item.ProductId,
-                            Quantity = item.Quantity,
-                            UnitPrice = item.UnitPrice * item.Quantity
-                        };
-                        _context.OrderDetails.Add(newOrderDetail);
-                        await _context.SaveChangesAsync();
+                            OrderDetail newOrderDetail = new OrderDetail()
+                            {
+                                OrderId = newOrder.OrderId,
+                                ProductId = item.ProductId,
+                                Quantity = item.Quantity,
+                                UnitPrice = item.UnitPrice * item.Quantity
+                            };
+                            _context.OrderDetails.Add(newOrderDetail);
+                            await _context.SaveChangesAsync();
+                        }
                     }
                 }
+                return RedirectToPage("./Index");
             }
-
-            return RedirectToPage("./Index");
+            else
+            {
+                return RedirectToPage("/Index");
+            }
         }
     }
 }

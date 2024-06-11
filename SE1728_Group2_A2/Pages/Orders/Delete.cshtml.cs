@@ -6,22 +6,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using SE1728_Group2_A2.Models;
+using SE1728_Group2_A2.Utils.SessionHelper;
 
 namespace SE1728_Group2_A2.Pages.Orders
 {
     public class DeleteModel : PageModel
     {
-        Staff currentStaff = new Staff()
-        {
-            StaffId = 3,
-            Name = "hieptv2",
-            Password = "password",
-            Role = 0
-        };
-        public void CheckAccount()
-        {
-            
-        }
         private readonly SE1728_Group2_A2.Models.MyStoreContext _context;
 
         public DeleteModel(SE1728_Group2_A2.Models.MyStoreContext context)
@@ -37,6 +27,7 @@ namespace SE1728_Group2_A2.Pages.Orders
 
         public async Task<IActionResult> OnGetAsync(int? id, string searchedDate)
         {
+            Staff currentStaff = HttpContext.Session.GetObjectFromJson<Staff>("Staff");
             if (currentStaff == null || currentStaff.Role != 0)
             {
                 Response.Redirect("/Index");
