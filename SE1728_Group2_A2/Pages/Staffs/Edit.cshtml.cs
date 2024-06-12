@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SE1728_Group2_A2.Models;
+using MySessionExtensions = SE1728_Group2_A2.Utils.SessionHelper;
 
 namespace SE1728_Group2_A2.Pages.Staffs
 {
@@ -29,7 +31,7 @@ namespace SE1728_Group2_A2.Pages.Staffs
                 return NotFound();
             }
 
-            var staff =  await _context.Staffs.FirstOrDefaultAsync(m => m.StaffId == id);
+            var staff = await _context.Staffs.FirstOrDefaultAsync(m => m.StaffId == id);
             if (staff == null)
             {
                 return NotFound();
@@ -52,6 +54,9 @@ namespace SE1728_Group2_A2.Pages.Staffs
             try
             {
                 await _context.SaveChangesAsync();
+                var staff = MySessionExtensions.SessionExtensions.GetObjectFromJson<Staff>(HttpContext.Session, "Staff");
+                staff.Name = Staff.Name;
+                MySessionExtensions.SessionExtensions.SetObjectAsJson(HttpContext.Session, "Staff", staff);
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -70,7 +75,7 @@ namespace SE1728_Group2_A2.Pages.Staffs
 
         private bool StaffExists(int id)
         {
-          return (_context.Staffs?.Any(e => e.StaffId == id)).GetValueOrDefault();
+            return (_context.Staffs?.Any(e => e.StaffId == id)).GetValueOrDefault();
         }
     }
 }

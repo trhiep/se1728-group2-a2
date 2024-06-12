@@ -5,10 +5,9 @@
     ViewData["Title"] = "Details";
 }
 
-<h1>Details</h1>
+<h1>Profile</h1>
 
 <div>
-    <h4>Staff</h4>
     <hr />
     <dl class="row">
         <dt class="col-sm-2">
@@ -26,5 +25,8 @@
     </dl>
 </div>
 <div>
-    <a asp-page="./Edit" asp-route-id="@Model.Staff?.StaffId">Edit</a> |
+    @if (Model.Staff.Role == 0)
+    {
+        <a asp-page="./Edit" asp-route-id="@Model.Staff?.StaffId" class="btn btn-primary">Update</a>
+    }
 </div>

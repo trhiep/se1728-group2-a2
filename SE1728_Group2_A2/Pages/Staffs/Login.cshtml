@@ -10,13 +10,13 @@
     <div class="col-md-4">
         <form method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Staff.Name" class="control-label"></label>
+            <div class="form-group mt-3 mb-3">
+                <label asp-for="Staff.Name" class="control-label pb-2"></label>
                 <input asp-for="Staff.Name" class="form-control" />
                 <span asp-validation-for="Staff.Name" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <label asp-for="Staff.Password" class="control-label"></label>
+            <div class="form-group mb-3">
+                <label asp-for="Staff.Password" class="control-label pb-2"></label>
                 <input asp-for="Staff.Password" class="form-control" type="password" />
                 <span asp-validation-for="Staff.Password" class="text-danger"></span>
             </div>

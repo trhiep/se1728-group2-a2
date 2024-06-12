@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using SE1728_Group2_A2.Models;
+using MySession = SE1728_Group2_A2.Utils.SessionHelper;
 
 namespace SE1728_Group2_A2.Pages.Staffs
 {
@@ -18,7 +19,7 @@ namespace SE1728_Group2_A2.Pages.Staffs
             _context = context;
         }
 
-      public Staff Staff { get; set; } = default!; 
+        public Staff Staff { get; set; } = default!;
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
@@ -27,15 +28,24 @@ namespace SE1728_Group2_A2.Pages.Staffs
                 return NotFound();
             }
 
-            var staff = await _context.Staffs.FirstOrDefaultAsync(m => m.StaffId == id);
-            if (staff == null)
+            if (id == 0)
             {
-                return NotFound();
-            }
-            else 
-            {
+                var staff = MySession.SessionExtensions.GetObjectFromJson<Staff>(HttpContext.Session, "Staff");
                 Staff = staff;
             }
+            else
+            {
+                var staff = await _context.Staffs.FirstOrDefaultAsync(m => m.StaffId == id);
+                if (staff == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    Staff = staff;
+                }
+            }
+
             return Page();
         }
     }

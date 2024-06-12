@@ -1,5 +1,6 @@
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using SE1728_Group2_A2.Models;
-
+using MySession = SE1728_Group2_A2.Utils.SessionHelper.SessionExtensions;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -8,6 +9,7 @@ builder.Services.AddDbContext<MyStoreContext>();
 builder.Services.AddSession();
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddControllersWithViews().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
