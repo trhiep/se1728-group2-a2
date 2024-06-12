@@ -23,8 +23,15 @@
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Staff.Password)
         </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Staff.Role)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Staff.RoleName)
+        </dd>
     </dl>
 </div>
 <div>
-    <a asp-page="./Edit" asp-route-id="@Model.Staff?.StaffId">Edit</a> |
+    <a asp-page="./Edit" asp-route-id="@Model.Staff?.StaffId" class="btn btn-primary">Edit</a> |
+    <a asp-page="./Index" class="btn btn-dark">Back to List</a>
 </div>

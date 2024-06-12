@@ -16,5 +16,13 @@ namespace SE1728_Group2_A2.Models
         public int Role { get; set; }
 
         public virtual ICollection<Order> Orders { get; set; }
+
+        public string RoleName
+        {
+            get
+            {
+                return Role == 1 ? "Admin" : "Staff";
+            }
+        }
     }
 }
