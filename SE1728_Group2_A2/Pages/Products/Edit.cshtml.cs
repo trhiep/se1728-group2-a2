@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SE1728_Group2_A2.Models;
+using SE1728_Group2_A2.Utils.SessionHelper;
 
 namespace SE1728_Group2_A2.Pages.Products
 {
@@ -24,6 +25,7 @@ namespace SE1728_Group2_A2.Pages.Products
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
+            if (!isAdmin()) { return RedirectToPage("/Index"); }
             if (id == null || _context.Products == null)
             {
                 return NotFound();
@@ -43,6 +45,7 @@ namespace SE1728_Group2_A2.Pages.Products
         // For more details, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
+            if (!isAdmin()) { return RedirectToPage("/Index"); }
             if (Product==null)
             {
                 return Page();
@@ -72,6 +75,16 @@ namespace SE1728_Group2_A2.Pages.Products
         private bool ProductExists(int id)
         {
           return (_context.Products?.Any(e => e.ProductId == id)).GetValueOrDefault();
+        }
+
+        bool isAdmin()
+        {
+            Staff currentStaff = HttpContext.Session.GetObjectFromJson<Staff>("Staff");
+            if (currentStaff == null || currentStaff.Role != 0)
+            {
+                return false;
+            }
+            return true;
         }
     }
 }

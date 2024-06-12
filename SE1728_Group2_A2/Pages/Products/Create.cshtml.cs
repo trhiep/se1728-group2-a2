@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SE1728_Group2_A2.Models;
+using SE1728_Group2_A2.Utils.SessionHelper;
 
 namespace SE1728_Group2_A2.Pages.Products
 {
@@ -20,7 +21,8 @@ namespace SE1728_Group2_A2.Pages.Products
 
         public IActionResult OnGet()
         {
-        ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryName");
+            if (!isAdmin()) { return RedirectToPage("/Index"); }
+            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryName");
             return Page();
         }
 
@@ -31,7 +33,8 @@ namespace SE1728_Group2_A2.Pages.Products
         // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
         public async Task<IActionResult> OnPostAsync()
         {
-          if (Product == null)
+            if (!isAdmin()) { return RedirectToPage("/Index"); }
+            if (Product == null)
             {
                 return Page();
             }
@@ -40,6 +43,16 @@ namespace SE1728_Group2_A2.Pages.Products
             await _context.SaveChangesAsync();
 
             return RedirectToPage("./Index");
+        }
+
+        bool isAdmin()
+        {
+            Staff currentStaff = HttpContext.Session.GetObjectFromJson<Staff>("Staff");
+            if (currentStaff == null || currentStaff.Role != 0)
+            {
+                return false;
+            }
+            return true;
         }
     }
 }
