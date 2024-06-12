@@ -61,6 +61,7 @@
                 </td>
                 <td style="display:flex; justify-content: center; gap: 0.5rem;">
                     <button class="btn btn-success view-details" data-order-id="@item.OrderId">View Details</button>
+                    @* <a asp-page="/OrderDetails/Index" asp-route-id="@item.OrderId" class="btn btn-success">Details New Page</a> *@
                     <a asp-page="./Edit" asp-route-id="@item.OrderId" class="btn btn-warning">Edit</a>
                     <a class="btn btn-danger btnDelete" data-id="@item.OrderId">Delete</a>
                 </td>
@@ -150,7 +151,7 @@
                 $('#editOrderLink').attr('href', '@Url.Page("./Edit")' + '?id=' + orderId);
 
                 $.ajax({
-                    url: '@Url.Page("OrderDetails", "OnGetOrderDetails")',
+                    url: '@Url.Page("OrderDetails", "OnGetAsync")',
                     type: 'GET',
                     data: { orderId: orderId },
                     success: function (data) {
