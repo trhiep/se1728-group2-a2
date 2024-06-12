@@ -17,20 +17,6 @@ namespace SE1728_Group2_A2.Pages.Staffs
 
         public IActionResult OnGet()
         {
-            string name, pass;
-            var conf = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
-                .Build();
-
-            name = conf.GetSection("AdminAccount").GetSection("Username").Value!;
-            pass = conf.GetSection("AdminAccount").GetSection("Password").Value!;
-            Staff st = Authentication(name, pass);
-            if (st == null)
-            {
-                Staff tempStaff = new Staff() { Name = name, Password = pass, Role = 1 };
-                _context.Staffs.Add(tempStaff);
-                _context.SaveChanges();
-            }
             return Page();
         }
 
