@@ -30,15 +30,42 @@ namespace SE1728_Group2_A2.Pages.Staffs
         // To protect from overposting attacks, see https://aka.ms/RazorPagesCRUD
         public async Task<IActionResult> OnPostAsync()
         {
-          if (!ModelState.IsValid || _context.Staffs == null || Staff == null)
+            if (!IsUserAuthenticated())
             {
-                return Page();
+                return RedirectToLoginPage();
+            }
+            else
+            {
+                if (!ModelState.IsValid || _context.Staffs == null || Staff == null)
+                {
+                    return Page();
+                }
+
+                _context.Staffs.Add(Staff);
+                await _context.SaveChangesAsync();
+
+                return RedirectToPage("./Index");
+            }
+        }
+
+
+        private bool IsUserAuthenticated()
+        {
+            var account = SE1728_Group2_A2.Utils.SessionHelper.SessionExtensions.GetObjectFromJson<Staff>(HttpContext.Session, "Staff");
+            if (account != null)
+            {
+                if (account.Role == 1)
+                {
+                    return true;
+                }
             }
 
-            _context.Staffs.Add(Staff);
-            await _context.SaveChangesAsync();
+            return false;
+        }
 
-            return RedirectToPage("./Index");
+        private IActionResult RedirectToLoginPage()
+        {
+            return RedirectToPage("/Staffs/Login");
         }
     }
 }

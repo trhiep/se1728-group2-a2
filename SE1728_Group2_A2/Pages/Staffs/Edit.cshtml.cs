@@ -24,53 +24,86 @@ namespace SE1728_Group2_A2.Pages.Staffs
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
-            if (id == null || _context.Staffs == null)
-            {
-                return NotFound();
-            }
 
-            var staff =  await _context.Staffs.FirstOrDefaultAsync(m => m.StaffId == id);
-            if (staff == null)
+            if (!IsUserAuthenticated())
             {
-                return NotFound();
+                return RedirectToLoginPage();
             }
-            Staff = staff;
-            return Page();
+            else
+            {
+                if (id == null || _context.Staffs == null)
+                {
+                    return NotFound();
+                }
+
+                var staff = await _context.Staffs.FirstOrDefaultAsync(m => m.StaffId == id);
+                if (staff == null)
+                {
+                    return NotFound();
+                }
+                Staff = staff;
+                return Page();
+            }
         }
 
+        private bool IsUserAuthenticated()
+        {
+            var account = SE1728_Group2_A2.Utils.SessionHelper.SessionExtensions.GetObjectFromJson<Staff>(HttpContext.Session, "Staff");
+            if (account != null)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private IActionResult RedirectToLoginPage()
+        {
+            return RedirectToPage("/Staffs/Login");
+        }
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see https://aka.ms/RazorPagesCRUD.
         public async Task<IActionResult> OnPostAsync()
         {
-            if (!ModelState.IsValid)
-            {
-                return Page();
-            }
 
-            _context.Attach(Staff).State = EntityState.Modified;
-
-            try
+            if (!IsUserAuthenticated())
             {
-                await _context.SaveChangesAsync();
+                return RedirectToLoginPage();
             }
-            catch (DbUpdateConcurrencyException)
+            else
             {
-                if (!StaffExists(Staff.StaffId))
+                if (!ModelState.IsValid)
                 {
-                    return NotFound();
+                    return Page();
                 }
-                else
+
+                _context.Attach(Staff).State = EntityState.Modified;
+
+                try
                 {
-                    throw;
+                    await _context.SaveChangesAsync();
                 }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!StaffExists(Staff.StaffId))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToPage("./Index");
             }
 
-            return RedirectToPage("./Details", new { id = Staff.StaffId });
+
+
         }
 
         private bool StaffExists(int id)
         {
-          return (_context.Staffs?.Any(e => e.StaffId == id)).GetValueOrDefault();
+            return (_context.Staffs?.Any(e => e.StaffId == id)).GetValueOrDefault();
         }
     }
 }

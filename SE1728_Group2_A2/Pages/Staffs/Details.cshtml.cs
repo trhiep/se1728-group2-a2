@@ -18,25 +18,50 @@ namespace SE1728_Group2_A2.Pages.Staffs
             _context = context;
         }
 
-      public Staff Staff { get; set; } = default!; 
+        public Staff Staff { get; set; } = default!;
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
-            if (id == null || _context.Staffs == null)
+
+            if (!IsUserAuthenticated())
             {
-                return NotFound();
+                return RedirectToLoginPage();
+            }
+            else
+            {
+                if (id == null || _context.Staffs == null)
+                {
+                    return NotFound();
+                }
+
+                var staff = await _context.Staffs.FirstOrDefaultAsync(m => m.StaffId == id);
+                if (staff == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    Staff = staff;
+                }
+                return Page();
+            }
+        }
+
+
+        private bool IsUserAuthenticated()
+        {
+            var account = SE1728_Group2_A2.Utils.SessionHelper.SessionExtensions.GetObjectFromJson<Staff>(HttpContext.Session, "Staff");
+            if (account != null)
+            {
+                return true;
             }
 
-            var staff = await _context.Staffs.FirstOrDefaultAsync(m => m.StaffId == id);
-            if (staff == null)
-            {
-                return NotFound();
-            }
-            else 
-            {
-                Staff = staff;
-            }
-            return Page();
+            return false;
+        }
+
+        private IActionResult RedirectToLoginPage()
+        {
+            return RedirectToPage("/Staffs/Login");
         }
     }
 }
