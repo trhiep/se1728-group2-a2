@@ -68,7 +68,7 @@ namespace SE1728_Group2_A2.Pages.Reports
             var account = SE1728_Group2_A2.Utils.SessionHelper.SessionExtensions.GetObjectFromJson<Staff>(HttpContext.Session, "Staff");
             if (account != null)
             {
-                if (account.Role == 0) // Admin
+                if (account.Role == 1) // Admin
                 {
                     LoadAllOrderForAdmin(startDate, endDate);
                 }
