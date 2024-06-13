@@ -74,7 +74,7 @@ namespace SE1728_Group2_A2.Pages.Reports
                 }
                 else
                 {
-                    LoadAllOrderStaff(account.Role, startDate, endDate);
+                    LoadAllOrderStaff(account.StaffId, startDate, endDate);
                 }
             }
             else
