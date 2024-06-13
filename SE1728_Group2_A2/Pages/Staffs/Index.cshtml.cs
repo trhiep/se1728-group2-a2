@@ -34,7 +34,7 @@ namespace SE1728_Group2_A2.Pages.Staffs
 
         private IActionResult RedirectToLoginPage()
         {
-            return RedirectToPage("/Staffs/Login");
+            return RedirectToPage("/Index");
         }
 
         public IList<Staff> Staff { get; set; } = default!;

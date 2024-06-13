@@ -5,7 +5,7 @@
 @{
     Layout = null;
     int count = 1;
-    int orderTotal = 0;
+    long orderTotal = 0;
 }
 
 <!DOCTYPE html>
@@ -42,7 +42,7 @@
         <tbody>
             @foreach (var item in Model.OrderDetail)
             {
-                int totalPrice = item.Quantity * item.Product.UnitPrice;
+                long totalPrice = (long) item.Quantity * item.UnitPrice;
                 orderTotal += totalPrice;
                 <tr>
                     <td>
@@ -55,7 +55,7 @@
                         @Html.DisplayFor(modelItem => item.Product.ProductName)
                     </td>
                     <td>
-                        @OrdersHelper.GetFormatedCurrency(item.Product.UnitPrice.ToString())
+                        @OrdersHelper.GetFormatedCurrency(item.UnitPrice.ToString())
                     </td>
                     <td>
                         @Html.DisplayFor(modelItem => item.Quantity)

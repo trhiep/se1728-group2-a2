@@ -7,10 +7,10 @@ namespace SE1728_Group2_A2.Utils.ModelHelper
     {
         public static string CalculateOrderTotal(Order order)
         {
-            int total = 0;
+            long total = 0;
             foreach (var orderDetail in order.OrderDetails)
             {
-                total += orderDetail.UnitPrice;
+                total += (long) orderDetail.UnitPrice * orderDetail.Quantity;
             }
             return total.ToString();
         }

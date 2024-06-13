@@ -134,9 +134,49 @@
             if (foundProduct) {
                 updateProductDetails(foundProduct);
                 turnButton(true);
+                changeReadOnly('#txtPrice', 'off')
+                changeReadOnly('#txtQuantity', 'off')
             } else {
                 resetVal();
                 turnButton(false);
+            }
+        }
+
+        function changeReadOnly(tag, mode) {
+            var inputElement = document.querySelector(tag);
+            if (mode === 'on') {
+                inputElement.setAttribute('readonly', true);
+            } else {
+                inputElement.removeAttribute('readonly');
+            }
+        }
+
+        document.getElementById('txtPrice').addEventListener('change', changePriceAndQuantityAction);
+        document.getElementById('txtQuantity').addEventListener('change', changePriceAndQuantityAction);
+
+        function changePriceAndQuantityAction() {
+            const txtTotalPriceElement = document.getElementById("txtTotalPrice");
+            var isContinueCalculate = true;
+            const price = Number(document.getElementById("txtPrice").value);
+            if (isNaN(price) || price < 1 || price > 2000000000) {
+                txtTotalPriceElement.value = "Invalid price";
+                txtTotalPriceElement.classList.add("not-exist");
+                document.getElementById("btnAdd").disabled = true;
+                isContinueCalculate = false;
+            }
+
+            const quantity = Number(document.getElementById("txtQuantity").value);
+            if (isNaN(quantity) || quantity < 1) {
+                txtTotalPriceElement.value = "Invalid quantity";
+                txtTotalPriceElement.classList.add("not-exist");
+                document.getElementById("btnAdd").disabled = true;
+                isContinueCalculate = false;
+            }
+
+            if (isContinueCalculate) {
+                txtTotalPriceElement.classList.remove("not-exist");
+                document.getElementById("txtTotalPrice").value = price * quantity;
+                document.getElementById("btnAdd").disabled = false;
             }
         }
 
@@ -150,14 +190,12 @@
         }
 
         function updateQuantity(increment) {
-            const productId = document.getElementById("txtProductId").value;
-            const products = getProductList();
-            const foundProduct = products.find(product => product.ProductId == productId);
             const currentQuantity = Number(document.getElementById("txtQuantity").value);
             const newQuantity = currentQuantity + increment;
+            const unitPrice = document.getElementById("txtPrice").value;
 
             document.getElementById("txtQuantity").value = newQuantity;
-            document.getElementById("txtTotalPrice").value = foundProduct.UnitPrice * newQuantity;
+            document.getElementById("txtTotalPrice").value = unitPrice * newQuantity;
             document.getElementById("btnDecrease").disabled = newQuantity <= 1;
         }
 
@@ -174,20 +212,22 @@
         function addProductToList() {
             const txtProductId = document.getElementById("txtProductId").value;
             const txtQuantity = parseInt(document.getElementById("txtQuantity").value, 10);
+            const txtPrice = parseInt(document.getElementById("txtPrice").value, 10);
             const products = getProductList();
             const foundProduct = products.find(product => product.ProductId == txtProductId);
             const existingProduct = orderDetails.find(item => item.productId === txtProductId);
 
             if (existingProduct) {
                 existingProduct.quantity += txtQuantity;
-                existingProduct.totalPrice = existingProduct.quantity * foundProduct.UnitPrice;
+                existingProduct.unitPrice = txtPrice;
+                existingProduct.totalPrice = existingProduct.quantity * txtPrice;
             } else {
                 orderDetails.push({
                     productId: txtProductId,
                     productName: foundProduct.ProductName,
-                    unitPrice: foundProduct.UnitPrice,
+                    unitPrice: txtPrice,
                     quantity: txtQuantity,
-                    totalPrice: txtQuantity * foundProduct.UnitPrice
+                    totalPrice: txtQuantity * txtPrice
                 });
             }
 
@@ -208,18 +248,18 @@
                 totalOrder += orderDetail.totalPrice;
                 const row = document.createElement("tr");
                 row.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td>${orderDetail.productId}</td>
-                    <td>${orderDetail.productName}</td>
-                    <td>${getFormattedCurrency(orderDetail.unitPrice)}</td>
-                    <td>${orderDetail.quantity}</td>
-                    <td>${getFormattedCurrency(orderDetail.totalPrice)}</td>
-                    <td class="button-group">
-                        <button class="btn btn-outline-danger squareBtn" onclick="removeProduct(${index})">X</button>
-                        <button class="btn btn-outline-warning squareBtn" onclick="changeOrderQuantity(${index}, -1)">-</button>
-                        <button class="btn btn-outline-primary squareBtn" onclick="changeOrderQuantity(${index}, 1)">+</button>
-                    </td>
-                `;
+                            <td>${index + 1}</td>
+                            <td>${orderDetail.productId}</td>
+                            <td>${orderDetail.productName}</td>
+                            <td>${getFormattedCurrency(orderDetail.unitPrice)}</td>
+                            <td>${orderDetail.quantity}</td>
+                            <td>${getFormattedCurrency(orderDetail.totalPrice)}</td>
+                            <td class="button-group">
+                                <button class="btn btn-outline-danger squareBtn" onclick="removeProduct(${index})">X</button>
+                                <button class="btn btn-outline-warning squareBtn" onclick="changeOrderQuantity(${index}, -1)">-</button>
+                                <button class="btn btn-outline-primary squareBtn" onclick="changeOrderQuantity(${index}, 1)">+</button>
+                            </td>
+                        `;
                 orderTableBody.appendChild(row);
             });
 
@@ -233,7 +273,7 @@
 
             if (orderDetail.quantity + change > 0) {
                 orderDetail.quantity += change;
-                orderDetail.totalPrice = orderDetail.quantity * foundProduct.UnitPrice;
+                orderDetail.totalPrice = orderDetail.quantity * orderDetail.unitPrice;
                 displayOrderDetails();
             }
         }
@@ -263,6 +303,10 @@
             document.getElementById("txtTotalPrice").value = "0";
             document.getElementById("btnCreate").disabled = false;
             turnButton(false);
+            changeReadOnly('#txtPrice', 'on')
+            changeReadOnly('#txtQuantity', 'on')
+            const txtTotalPriceElement = document.getElementById("txtTotalPrice");
+            txtTotalPriceElement.classList.remove("not-exist");
         }
 
         function turnButton(enable) {

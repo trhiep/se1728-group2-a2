@@ -82,7 +82,7 @@ namespace SE1728_Group2_A2.Pages.Orders
                                 OrderId = newOrder.OrderId,
                                 ProductId = item.ProductId,
                                 Quantity = item.Quantity,
-                                UnitPrice = item.UnitPrice * item.Quantity
+                                UnitPrice = item.UnitPrice
                             };
                             _context.OrderDetails.Add(newOrderDetail);
                             await _context.SaveChangesAsync();
