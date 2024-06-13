@@ -8,7 +8,7 @@ namespace SE1728_Group2_A2.Pages.Staffs
     public class LoginModel : PageModel
     {
         private readonly MyStoreContext _context;
-        
+
 
         public LoginModel(MyStoreContext context)
         {
@@ -17,20 +17,6 @@ namespace SE1728_Group2_A2.Pages.Staffs
 
         public IActionResult OnGet()
         {
-            string name, pass;
-            var conf = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
-                .Build();
-
-            name = conf.GetSection("AdminAccount").GetSection("Username").Value!;
-            pass = conf.GetSection("AdminAccount").GetSection("Password").Value!;
-            Staff st = Authentication(name, pass);
-            if (st == null)
-            {
-                Staff tempStaff = new Staff() { Name = name, Password = pass, Role = 1 };
-                _context.Staffs.Add(tempStaff);
-                _context.SaveChanges();
-            }
             return Page();
         }
 
@@ -53,12 +39,31 @@ namespace SE1728_Group2_A2.Pages.Staffs
         {
             if (ModelState.IsValid)
             {
-                Staff staff = Authentication(Staff.Name, Staff.Password);
-                if (staff == null) return Page();
+                string name, pass;
+                int role;
+                var conf = new ConfigurationBuilder()
+                    .AddJsonFile("appsettings.json")
+                    .Build();
+                Staff staff;
+                name = conf.GetSection("AdminAccount").GetSection("Username").Value!;
+                pass = conf.GetSection("AdminAccount").GetSection("Password").Value!;
+                role = Int32.Parse(conf.GetSection("AdminAccount").GetSection("Role").Value!);
+                if (name == Staff.Name && pass == Staff.Password)
+                {
+                    staff = new Staff()
+                    {
+                        StaffId = 0,
+                        Name = name,
+                        Password = pass,
+                        Role = role
+                    };
+                }
                 else
                 {
-                    MySessionExtensions.SessionExtensions.SetObjectAsJson(HttpContext.Session, "Staff", staff);
+                    staff = Authentication(Staff.Name, Staff.Password);
                 }
+                if (staff == null) return Page();
+                MySessionExtensions.SessionExtensions.SetObjectAsJson(HttpContext.Session, "Staff", staff);
                 return RedirectToPage("/Index");
             }
             return Page();

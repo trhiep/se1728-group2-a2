@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using SE1728_Group2_A2.Models;
+using MySessionExtensions = SE1728_Group2_A2.Utils.SessionHelper;
 
 namespace SE1728_Group2_A2.Pages.Staffs
 {
@@ -45,7 +47,7 @@ namespace SE1728_Group2_A2.Pages.Staffs
                 return Page();
             }
         }
-
+        
         private bool IsUserAuthenticated()
         {
             var account = SE1728_Group2_A2.Utils.SessionHelper.SessionExtensions.GetObjectFromJson<Staff>(HttpContext.Session, "Staff");
@@ -61,8 +63,8 @@ namespace SE1728_Group2_A2.Pages.Staffs
         {
             return RedirectToPage("/Staffs/Login");
         }
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see https://aka.ms/RazorPagesCRUD.
+
+
         public async Task<IActionResult> OnPostAsync()
         {
 
@@ -82,6 +84,9 @@ namespace SE1728_Group2_A2.Pages.Staffs
                 try
                 {
                     await _context.SaveChangesAsync();
+                    var staff = MySessionExtensions.SessionExtensions.GetObjectFromJson<Staff>(HttpContext.Session, "Staff");
+                    staff.Name = Staff.Name;
+                    MySessionExtensions.SessionExtensions.SetObjectAsJson(HttpContext.Session, "Staff", staff);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -94,10 +99,8 @@ namespace SE1728_Group2_A2.Pages.Staffs
                         throw;
                     }
                 }
-                return RedirectToPage("./Index");
+                return RedirectToPage("./Details", new { id = Staff.StaffId });
             }
-
-
 
         }
 

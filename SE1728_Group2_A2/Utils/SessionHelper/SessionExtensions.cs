@@ -2,6 +2,7 @@
 
 namespace SE1728_Group2_A2.Utils.SessionHelper
 {
+
     public static class SessionExtensions
     {
         public static void SetObjectAsJson(this ISession session, string key, object value)

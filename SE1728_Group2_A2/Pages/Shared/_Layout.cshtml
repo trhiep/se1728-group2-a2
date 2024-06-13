@@ -60,7 +60,7 @@
                             else
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-page="/Staffs/Details" asp-route-id="@staff.StaffId">Profile</a>
+                                    <a class="nav-link text-dark" asp-page="/Staffs/Details" asp-route-id="@(staff.Role == 1 ? 0 : staff.StaffId)">Profile</a>
                                 </li>
                                 <li class="nav-item">
                                     <a asp-page="/Staffs/Login" asp-area="" asp-page-handler="Logout" class="nav-link text-dark">Logout (@staff.Name)</a>
