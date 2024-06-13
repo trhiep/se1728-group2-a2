@@ -65,7 +65,7 @@ namespace SE1728_Group2_A2.Pages.Products
         bool isAdmin()
         {
             Staff currentStaff = HttpContext.Session.GetObjectFromJson<Staff>("Staff");
-            if (currentStaff == null || currentStaff.Role != 0)
+            if (currentStaff == null || currentStaff.Role == 0)
             {
                 return false;
             }
