@@ -1,0 +1,158 @@
+﻿@page
+@model SE1728_Group2_A2.Pages.Products.IndexModel
+
+@{
+    ViewData["Title"] = "Index";
+}
+<style>
+    .button {
+  position: relative;
+  width: 150px;
+  height: 40px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  border: 1px solid #34974d;
+  background-color: #3aa856;
+}
+
+.button, .button__icon, .button__text {
+  transition: all 0.3s;
+}
+
+.button .button__text {
+  transform: translateX(30px);
+  color: #fff;
+  font-weight: 600;
+}
+
+.button .button__icon {
+  position: absolute;
+  transform: translateX(109px);
+  height: 100%;
+  width: 39px;
+  background-color: #34974d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.button .svg {
+  width: 30px;
+  stroke: #fff;
+}
+
+.button:hover {
+  background: #34974d;
+}
+
+.button:hover .button__text {
+  color: transparent;
+}
+
+.button:hover .button__icon {
+  width: 148px;
+  transform: translateX(0);
+}
+
+.button:active .button__icon {
+  background-color: #2e8644;
+}
+
+.button:active {
+  border: 1px solid #2e8644;
+}
+</style>
+<h1>Product</h1>
+<form asp-action=".Index" method="post" style="margin:10px;">
+    <div class="row">
+        <div class="col-2">
+            <label for="SearchName" class="form-label">Search by name:</label>
+        </div>
+        <div class="col-1">
+            <input asp-for="@Model.SearchName" name="SearchName" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-2">
+            <label for="SearchPrice" class="form-label">Search by price:</label>
+        </div>
+        <div class="col-1">
+            <input asp-for="@Model.SearchPrice" name="SearchPrice" />
+        </div>
+    </div>
+    <div class="row">
+        <div>
+            <input type="submit" value="Search" class="btn-primary"/>
+        </div>
+    </div>
+    @* <table>
+        <tr>
+            <td>
+                <span>Search by name</span>
+            </td>
+            <td>
+                <input asp-for="@Model.SearchName" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span>Search by price</span>
+            </td>
+            <td>
+                <input asp-for="@Model.SearchPrice" />
+            </td>
+        </tr>
+    </table>
+    <input type="submit" value="Search" /> *@
+</form>
+<p>
+    @* <a asp-page="Create">Create New</a> *@
+
+    <a asp-page="Create" class="button">
+        <span class="button__text">Add New</span>
+        <span class="button__icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" viewBox="0 0 24 24" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke="currentColor" height="24" fill="none" class="svg"><line y2="19" y1="5" x2="12" x1="12"></line><line y2="12" y1="12" x2="19" x1="5"></line></svg></span>
+    </a>
+</p>
+<table class="table table-striped">
+    <thead class="table-primary">
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Product[0].ProductId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Product[0].ProductName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Product[0].UnitPrice)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Product[0].Category.CategoryName)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model.Product) {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ProductId)
+                </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ProductName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.UnitPrice)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Category.CategoryName)
+            </td>
+            <td>
+                <a class="btn btn-success" asp-page="./Edit" asp-route-id="@item.ProductId">Edit</a>
+                <a class="btn btn-warning" asp-page="./Details" asp-route-id="@item.ProductId">Details</a>
+                <a class="btn btn-danger" asp-page="./Delete" asp-route-id="@item.ProductId">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

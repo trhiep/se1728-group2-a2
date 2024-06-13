@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,51 +26,82 @@ namespace SE1728_Group2_A2.Pages.Staffs
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
-            if (id == null || _context.Staffs == null)
-            {
-                return NotFound();
-            }
 
-            var staff = await _context.Staffs.FirstOrDefaultAsync(m => m.StaffId == id);
-            if (staff == null)
+            if (!IsUserAuthenticated())
             {
-                return NotFound();
+                return RedirectToLoginPage();
             }
-            Staff = staff;
-            return Page();
-        }
-
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see https://aka.ms/RazorPagesCRUD.
-        public async Task<IActionResult> OnPostAsync()
-        {
-            if (!ModelState.IsValid)
+            else
             {
-                return Page();
-            }
-
-            _context.Attach(Staff).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-                var staff = MySessionExtensions.SessionExtensions.GetObjectFromJson<Staff>(HttpContext.Session, "Staff");
-                staff.Name = Staff.Name;
-                MySessionExtensions.SessionExtensions.SetObjectAsJson(HttpContext.Session, "Staff", staff);
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!StaffExists(Staff.StaffId))
+                if (id == null || _context.Staffs == null)
                 {
                     return NotFound();
                 }
-                else
+
+                var staff = await _context.Staffs.FirstOrDefaultAsync(m => m.StaffId == id);
+                if (staff == null)
                 {
-                    throw;
+                    return NotFound();
                 }
+                Staff = staff;
+                return Page();
+            }
+        }
+        
+        private bool IsUserAuthenticated()
+        {
+            var account = SE1728_Group2_A2.Utils.SessionHelper.SessionExtensions.GetObjectFromJson<Staff>(HttpContext.Session, "Staff");
+            if (account != null)
+            {
+                return true;
             }
 
-            return RedirectToPage("./Details", new { id = Staff.StaffId });
+            return false;
+        }
+
+        private IActionResult RedirectToLoginPage()
+        {
+            return RedirectToPage("/Staffs/Login");
+        }
+
+
+        public async Task<IActionResult> OnPostAsync()
+        {
+
+            if (!IsUserAuthenticated())
+            {
+                return RedirectToLoginPage();
+            }
+            else
+            {
+                if (!ModelState.IsValid)
+                {
+                    return Page();
+                }
+
+                _context.Attach(Staff).State = EntityState.Modified;
+
+                try
+                {
+                    await _context.SaveChangesAsync();
+                    var staff = MySessionExtensions.SessionExtensions.GetObjectFromJson<Staff>(HttpContext.Session, "Staff");
+                    staff.Name = Staff.Name;
+                    MySessionExtensions.SessionExtensions.SetObjectAsJson(HttpContext.Session, "Staff", staff);
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!StaffExists(Staff.StaffId))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToPage("./Details", new { id = Staff.StaffId });
+            }
+
         }
 
         private bool StaffExists(int id)

@@ -23,13 +23,28 @@
                 <span asp-validation-for="Staff.Password" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+                <label asp-for="Staff.Role" class="control-label"></label>
+
+
+                <select asp-for="Staff.Role" class="form-control">
+                    <option value="1">Admin</option>
+                    <option value="0">Staff</option>
+                </select>
             </div>
+            <br />
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+                <a asp-page="./Index" class="btn btn-dark">Back to List</a>
+            </div>
+
         </form>
     </div>
 </div>
 
 
+
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

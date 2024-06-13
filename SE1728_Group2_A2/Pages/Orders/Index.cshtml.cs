@@ -11,27 +11,22 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
 using SE1728_Group2_A2.Models;
 using SE1728_Group2_A2.Utils.ModelHelper;
-using static NuGet.Packaging.PackagingConstants;
+using SE1728_Group2_A2.Utils.SessionHelper;
+using MySessionHelper = SE1728_Group2_A2.Utils.SessionHelper;
 
 namespace SE1728_Group2_A2.Pages.Orders
 {
     public class IndexModel : PageModel
     {
-        Staff currentStaff = new Staff()
-        {
-            StaffId = 3,
-            Name = "hieptv2",
-            Password = "password",
-            Role = 0
-        };
 
         private readonly SE1728_Group2_A2.Models.MyStoreContext _context;
-        public void CheckAccount()
+        public bool IsValidAccount(Staff staff)
         {
-            if (currentStaff == null || currentStaff.Role != 0)
+            if (staff == null || staff.Role != 0)
             {
-                Response.Redirect("./Index");
+                return false;
             }
+            return true;
         }
 
         public IndexModel(SE1728_Group2_A2.Models.MyStoreContext context)
@@ -49,49 +44,66 @@ namespace SE1728_Group2_A2.Pages.Orders
 
         public IList<Order> Order { get; set; } = default!;
 
-        public async Task OnGetAsync()
+        public async Task<IActionResult> OnGetAsync()
         {
-            CheckAccount();
-
-            DateTime searchDateVal = OrdersHelper.GetFormatedDateTimeFromString(SearchedDate);
-            if (searchDateVal == default(DateTime))
+            Staff currentStaff = HttpContext.Session.GetObjectFromJson<Staff>("Staff");
+            if (IsValidAccount(currentStaff))
             {
-                searchDateVal = DateTime.Today;
-            }
-            var tomorrow = searchDateVal.AddDays(1);
+                DateTime searchDateVal = OrdersHelper.GetFormatedDateTimeFromString(SearchedDate);
+                if (searchDateVal == default(DateTime))
+                {
+                    searchDateVal = DateTime.Today;
+                }
+                var tomorrow = searchDateVal.AddDays(1);
 
-            if (_context.Orders != null)
+                if (_context.Orders != null)
+                {
+                    Order = await _context.Orders
+                        .Where(o => o.StaffId == currentStaff.StaffId).Where(o => o.OrderDate >= searchDateVal && o.OrderDate < tomorrow)
+                        .Include(o => o.Staff)
+                        .Include(od => od.OrderDetails)
+                        .OrderByDescending(o => o.OrderId)
+                        .ToListAsync();
+                    TransferMessageToPage(searchDateVal);
+                }
+                return Page();
+            } else
             {
-                Order = await _context.Orders
-                    .Where(o => o.StaffId == currentStaff.StaffId).Where(o => o.OrderDate >= searchDateVal && o.OrderDate < tomorrow)
-                    .Include(o => o.Staff)
-                    .Include(od => od.OrderDetails)
-                    .OrderByDescending(o => o.OrderId)
-                    .ToListAsync();
-                TransferMessageToPage(searchDateVal);
+                return RedirectToPage("/Index");
             }
+
+            
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
-            CheckAccount();
-            DateTime searchDateVal = OrdersHelper.GetFormatedDateTimeFromString(SearchDate);
-            var tomorrow = searchDateVal.AddDays(1);
-            if (_context.Orders != null)
+            Staff currentStaff = HttpContext.Session.GetObjectFromJson<Staff>("Staff");
+            if (IsValidAccount(currentStaff))
             {
-                Order = await _context.Orders
-                    .Where(o => o.StaffId == currentStaff.StaffId).Where(o => o.OrderDate >= searchDateVal && o.OrderDate < tomorrow)
-                    .Include(o => o.Staff)
-                    .Include(od => od.OrderDetails)
-                    .OrderByDescending(o => o.OrderId)
-                    .ToListAsync();
-                TransferMessageToPage(searchDateVal);
+                DateTime searchDateVal = OrdersHelper.GetFormatedDateTimeFromString(SearchDate);
+                var tomorrow = searchDateVal.AddDays(1);
+                if (_context.Orders != null)
+                {
+                    Order = await _context.Orders
+                        .Where(o => o.StaffId == currentStaff.StaffId).Where(o => o.OrderDate >= searchDateVal && o.OrderDate < tomorrow)
+                        .Include(o => o.Staff)
+                        .Include(od => od.OrderDetails)
+                        .OrderByDescending(o => o.OrderId)
+                        .ToListAsync();
+                    TransferMessageToPage(searchDateVal);
+                }
+                return Page();
+            } 
+            else
+            {
+                return RedirectToPage("/Index");
             }
-            return Page();
+                
         }
 
         private void TransferMessageToPage(DateTime searchDateVal)
         {
+            Staff currentStaff = HttpContext.Session.GetObjectFromJson<Staff>("Staff");
             //  Message of page heading
             if (searchDateVal == DateTime.Today)
             {
@@ -105,8 +117,12 @@ namespace SE1728_Group2_A2.Pages.Orders
             // Message of total order on selected date
             if (Order.Count > 0)
             {
-                string totalOrder = OrdersHelper.GetFormatedCurrency(Order.SelectMany(order => order.OrderDetails)
-                    .Sum(orderDetail => orderDetail.UnitPrice).ToString());
+                long totalOrderLong = 0;
+                foreach (var orderDetail in Order.SelectMany(order => order.OrderDetails))
+                {
+                    totalOrderLong += (long)orderDetail.UnitPrice * orderDetail.Quantity;
+                }
+                string totalOrder = OrdersHelper.GetFormatedCurrency(totalOrderLong.ToString());
                 ViewData["OrderTotalInDay"] = "Total order: " + totalOrder;
             }
             else

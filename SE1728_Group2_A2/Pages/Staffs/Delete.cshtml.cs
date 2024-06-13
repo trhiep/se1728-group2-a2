@@ -23,40 +23,74 @@ namespace SE1728_Group2_A2.Pages.Staffs
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
-            if (id == null || _context.Staffs == null)
+            if (!IsUserAuthenticated())
             {
-                return NotFound();
+                return RedirectToLoginPage();
             }
+            else
+            {
+                if (id == null || _context.Staffs == null)
+                {
+                    return NotFound();
+                }
 
-            var staff = await _context.Staffs.FirstOrDefaultAsync(m => m.StaffId == id);
+                var staff = await _context.Staffs.FirstOrDefaultAsync(m => m.StaffId == id);
 
-            if (staff == null)
-            {
-                return NotFound();
+                if (staff == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    Staff = staff;
+                }
+                return Page();
             }
-            else 
-            {
-                Staff = staff;
-            }
-            return Page();
         }
 
         public async Task<IActionResult> OnPostAsync(int? id)
         {
-            if (id == null || _context.Staffs == null)
+            if (!IsUserAuthenticated())
             {
-                return NotFound();
+                return RedirectToLoginPage();
             }
-            var staff = await _context.Staffs.FindAsync(id);
-
-            if (staff != null)
+            else
             {
-                Staff = staff;
-                _context.Staffs.Remove(Staff);
-                await _context.SaveChangesAsync();
+                if (id == null || _context.Staffs == null)
+                {
+                    return NotFound();
+                }
+                var staff = await _context.Staffs.FindAsync(id);
+
+                if (staff != null)
+                {
+                    Staff = staff;
+                    _context.Staffs.Remove(Staff);
+                    await _context.SaveChangesAsync();
+                }
+
+                return RedirectToPage("./Index");
+            }
+        }
+
+
+        private bool IsUserAuthenticated()
+        {
+            var account = SE1728_Group2_A2.Utils.SessionHelper.SessionExtensions.GetObjectFromJson<Staff>(HttpContext.Session, "Staff");
+            if (account != null)
+            {
+                if (account.Role == 1)
+                {
+                    return true;
+                }
             }
 
-            return RedirectToPage("./Index");
+            return false;
+        }
+
+        private IActionResult RedirectToLoginPage()
+        {
+            return RedirectToPage("/Staffs/Login");
         }
     }
 }

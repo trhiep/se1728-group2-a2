@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,6 +23,12 @@ namespace SE1728_Group2_A2.Pages.Staffs
 
         public async Task<IActionResult> OnGetAsync(int? id)
         {
+
+            if (!IsUserAuthenticated())
+            {
+                return RedirectToLoginPage();
+            }
+
             if (id == null || _context.Staffs == null)
             {
                 return NotFound();
@@ -48,5 +54,22 @@ namespace SE1728_Group2_A2.Pages.Staffs
 
             return Page();
         }
+        
+        private bool IsUserAuthenticated()
+        {
+            var account = SE1728_Group2_A2.Utils.SessionHelper.SessionExtensions.GetObjectFromJson<Staff>(HttpContext.Session, "Staff");
+            if (account != null)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private IActionResult RedirectToLoginPage()
+        {
+            return RedirectToPage("/Staffs/Login");
+        }
+            
     }
 }

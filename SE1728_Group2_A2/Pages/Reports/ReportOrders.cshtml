@@ -1,0 +1,179 @@
+﻿@page
+@model SE1728_Group2_A2.Pages.Reports.ReportOrdersModel
+@using SE1728_Group2_A2.Pages.Reports
+
+@{
+    ViewData["Title"] = "Report Management";
+    int count = 1;
+}
+
+<style>
+    body {
+        font-family: 'Arial', sans-serif;
+        background-color: #f8f9fa;
+    }
+
+    .container {
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-top: 20px;
+    }
+
+    h2 {
+        color: #343a40;
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        font-weight: bold;
+    }
+
+    .form-control {
+        border-radius: 4px;
+        border: 1px solid #ced4da;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+        border-radius: 4px;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+
+    .table {
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+        .table thead th {
+            background-color: #343a40;
+            color: white;
+        }
+
+        .table tbody tr:nth-child(odd) {
+            background-color: #f8f9fa;
+        }
+
+        .table tbody tr:hover {
+            background-color: #e9ecef;
+            cursor: pointer;
+        }
+
+    .modal-content {
+        border-radius: 8px;
+    }
+
+    #orderDetailsModal .modal-dialog {
+        max-width: 80%;
+    }
+
+    #orderDetailsModal .modal-body {
+        padding: 20px;
+    }
+</style>
+
+<div class="container">
+    <h2>@ViewData["Title"]</h2>
+    <form method="post">
+        <div class="row">
+            <div class="col-md-5">
+                <div class="form-group">
+                    <label asp-for="StartDate"></label>
+                    <input asp-for="StartDate" class="form-control" type="text" id="dateStart" />
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="form-group">
+                    <label asp-for="EndDate"></label>
+                    <input asp-for="EndDate" class="form-control" type="text" id="dateEnd" />
+                </div>
+            </div>
+            <div class="col-md-2 d-flex flex-column justify-content-end align-items-center">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </div>
+        </div>
+    </form>
+
+    <table class="table table-active mt-3" id="ordersTable">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Order ID</th>
+                <th>Order Date</th>
+                <th>Staff ID</th>
+                <th>Staff Name</th>
+                <th>Role</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (ViewData["Orders"] != null)
+            {
+                foreach (var report in (List<OrderInfo>)ViewData["Orders"])
+                {
+                    <tr class="click-row" data-order-id="@report.OrderId">
+                        <td>@count</td>
+                        <td>@report.OrderId</td>
+                        <td>@report.OrderDate.ToString("MM/dd/yyyy")</td>
+                        <td>@report.StaffId</td>
+                        <td>@report.StaffName</td>
+                        <td>@report.RoleName</td>
+                    </tr>
+                    count++;
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1" role="dialog" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div id="modal-body-content">
+                <!-- Order details will be loaded here via AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        $(document).ready(function () {
+            // Add click event listener to rows
+            $('#ordersTable tbody').on('click', 'tr.click-row', function () {
+                var orderId = $(this).data('order-id');
+                $.ajax({
+                    url: '@Url.Page("/Reports/ReportDetails")',
+                    type: 'GET',
+                    data: { orderId: orderId },
+                    success: function (data) {
+                        // Update modal with fetched data
+                        $('#modal-body-content').html(data);
+                        $('#orderDetailsModal').modal('show');
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    }
+                });
+            });
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            flatpickr("#dateStart", {
+                dateFormat: "d/m/Y",
+                maxDate: "today"
+            });
+            flatpickr("#dateEnd", {
+                dateFormat: "d/m/Y",
+                maxDate: "today"
+            });
+        });
+    </script>
+}

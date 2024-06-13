@@ -27,4 +27,10 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Models\MyStoreContext.cs">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Compile>
+  </ItemGroup>
+
 </Project>
