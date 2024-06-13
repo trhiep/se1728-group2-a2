@@ -97,7 +97,7 @@ namespace SE1728_Group2_A2.Pages.Reports
                           OrderDate = o.OrderDate,
                           StaffId = o.StaffId,
                           StaffName = s.Name,
-                          RoleName = s.Role == 1 ? "Staff" : "Admin"
+                          RoleName = s.Role == 1 ? "Admin" : "Staff"
                       })
                 .ToList();
 
@@ -118,7 +118,7 @@ namespace SE1728_Group2_A2.Pages.Reports
                           OrderDate = o.OrderDate,
                           StaffId = o.StaffId,
                           StaffName = s.Name,
-                          RoleName = s.Role == 1 ? "Staff" : "Admin"
+                          RoleName = s.Role == 1 ? "Admin" : "Staff"
                       })
                 .ToList();
 
