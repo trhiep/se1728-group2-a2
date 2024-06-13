@@ -117,8 +117,12 @@ namespace SE1728_Group2_A2.Pages.Orders
             // Message of total order on selected date
             if (Order.Count > 0)
             {
-                string totalOrder = OrdersHelper.GetFormatedCurrency(Order.SelectMany(order => order.OrderDetails)
-                    .Sum(orderDetail => orderDetail.UnitPrice).ToString());
+                long totalOrderLong = 0;
+                foreach (var orderDetail in Order.SelectMany(order => order.OrderDetails))
+                {
+                    totalOrderLong += (long)orderDetail.UnitPrice * orderDetail.Quantity;
+                }
+                string totalOrder = OrdersHelper.GetFormatedCurrency(totalOrderLong.ToString());
                 ViewData["OrderTotalInDay"] = "Total order: " + totalOrder;
             }
             else

@@ -3,6 +3,7 @@
 
 @{
     ViewData["Title"] = "Edit";
+    int maxOrderDetailsTotalPrice = Int32.MaxValue;
 }
 
 <h4>Edit Order</h4>
@@ -26,7 +27,7 @@
                 </div>
                 <div class="form-group col-md-3">
                     <label class="control-label bold-label">Price</label>
-                    <input class="form-control" id="txtPrice" type="text" value="0" readonly />
+                    <input class="form-control" id="txtPrice" type="text" value="0" />
                 </div>
                 <div class="form-group col-md-3">
                     <label class="control-label bold-label">Quantity</label>
@@ -128,7 +129,8 @@
             if (orderDetails.length > 0) {
                 document.getElementById("btnSave").disabled = false;
             }
-            displayOrderDetails()
+            displayOrderDetails();
+            console.log(maxOrderDetailsTotalPrice);
         };
 
         function getProductList() {
@@ -143,9 +145,49 @@
             if (foundProduct) {
                 updateProductDetails(foundProduct);
                 turnButton(true);
+                changeReadOnly('#txtPrice', 'off')
+                changeReadOnly('#txtQuantity', 'off')
             } else {
                 resetVal();
                 turnButton(false);
+            }
+        }
+
+        function changeReadOnly(tag, mode) {
+            var inputElement = document.querySelector(tag);
+            if (mode === 'on') {
+                inputElement.setAttribute('readonly', true);
+            } else {
+                inputElement.removeAttribute('readonly');
+            }
+        }
+
+        document.getElementById('txtPrice').addEventListener('change', changePriceAndQuantityAction);
+        document.getElementById('txtQuantity').addEventListener('change', changePriceAndQuantityAction);
+
+        function changePriceAndQuantityAction() {
+            const txtTotalPriceElement = document.getElementById("txtTotalPrice");
+            var isContinueCalculate = true;
+            const price = Number(document.getElementById("txtPrice").value);
+            if (isNaN(price) || price < 1 || price > 2000000000) {
+                txtTotalPriceElement.value = "Invalid price";
+                txtTotalPriceElement.classList.add("not-exist");
+                document.getElementById("btnAdd").disabled = true;
+                isContinueCalculate = false;
+            }
+
+            const quantity = Number(document.getElementById("txtQuantity").value);
+            if (isNaN(quantity) || quantity < 1) {
+                txtTotalPriceElement.value = "Invalid quantity";
+                txtTotalPriceElement.classList.add("not-exist");
+                document.getElementById("btnAdd").disabled = true;
+                isContinueCalculate = false;
+            }
+
+            if (isContinueCalculate) {
+                txtTotalPriceElement.classList.remove("not-exist");
+                document.getElementById("txtTotalPrice").value = price * quantity;
+                document.getElementById("btnAdd").disabled = false;
             }
         }
 
@@ -159,14 +201,12 @@
         }
 
         function updateQuantity(increment) {
-            const productId = document.getElementById("txtProductId").value;
-            const products = getProductList();
-            const foundProduct = products.find(product => product.ProductId == productId);
             const currentQuantity = Number(document.getElementById("txtQuantity").value);
             const newQuantity = currentQuantity + increment;
+            const unitPrice = document.getElementById("txtPrice").value;
 
             document.getElementById("txtQuantity").value = newQuantity;
-            document.getElementById("txtTotalPrice").value = foundProduct.UnitPrice * newQuantity;
+            document.getElementById("txtTotalPrice").value = unitPrice * newQuantity;
             document.getElementById("btnDecrease").disabled = newQuantity <= 1;
         }
 
@@ -181,26 +221,31 @@
         }
 
         function addProductToList() {
-            const txtProductId = parseInt(document.getElementById("txtProductId").value, 10);
+            const txtProductId = document.getElementById("txtProductId").value;
             const txtQuantity = parseInt(document.getElementById("txtQuantity").value, 10);
+            const txtPrice = parseInt(document.getElementById("txtPrice").value, 10);
             const products = getProductList();
             const foundProduct = products.find(product => product.ProductId == txtProductId);
-            const existingProduct = orderDetails.find(item => item.productId === txtProductId);
+            const existingProduct = orderDetails.find(item => item.productId == txtProductId);
 
             if (existingProduct) {
                 existingProduct.quantity += txtQuantity;
-                existingProduct.totalPrice = existingProduct.quantity * foundProduct.UnitPrice;
+                existingProduct.unitPrice = txtPrice;
+                existingProduct.totalPrice = existingProduct.quantity * txtPrice;
             } else {
                 orderDetails.push({
                     productId: txtProductId,
                     productName: foundProduct.ProductName,
-                    unitPrice: foundProduct.UnitPrice,
+                    unitPrice: txtPrice,
                     quantity: txtQuantity,
-                    totalPrice: txtQuantity * foundProduct.UnitPrice
+                    totalPrice: txtQuantity * txtPrice
                 });
             }
 
-            console.log(orderDetails);
+            document.getElementById('orderForm').addEventListener('submit', () => {
+                document.getElementById('orderDetailsInput').value = JSON.stringify(orderDetails);
+            });
+
             displayOrderDetails();
             resetValAfterAddToList();
         }
@@ -242,7 +287,7 @@
 
             if (orderDetail.quantity + change > 0) {
                 orderDetail.quantity += change;
-                orderDetail.totalPrice = orderDetail.quantity * foundProduct.UnitPrice;
+                orderDetail.totalPrice = orderDetail.quantity * orderDetail.unitPrice;
                 displayOrderDetails();
             }
         }

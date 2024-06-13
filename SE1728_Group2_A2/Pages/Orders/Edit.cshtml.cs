@@ -83,9 +83,9 @@ namespace SE1728_Group2_A2.Pages.Orders
                         {
                             productId = item.ProductId,
                             productName = item.Product.ProductName,
-                            unitPrice = item.Product.UnitPrice,
+                            unitPrice = item.UnitPrice,
                             quantity = item.Quantity,
-                            totalPrice = item.Product.UnitPrice * item.Quantity
+                            totalPrice = (long )item.UnitPrice * item.Quantity
                         };
                         OrderDetailsDTO.Add(newOrderDetails);
                     }
@@ -149,7 +149,7 @@ namespace SE1728_Group2_A2.Pages.Orders
                                     OrderId = id,
                                     ProductId = item.ProductId,
                                     Quantity = item.Quantity,
-                                    UnitPrice = item.UnitPrice * item.Quantity
+                                    UnitPrice = item.UnitPrice
                                 };
                                 _context.OrderDetails.Add(newOrderDetail);
                                 await _context.SaveChangesAsync();
@@ -190,6 +190,6 @@ namespace SE1728_Group2_A2.Pages.Orders
         public string productName { get; set; }
         public int unitPrice { get; set; }
         public int quantity { get; set; }
-        public int totalPrice { get; set; }
+        public long totalPrice { get; set; }
     }
 }
