@@ -1,11 +1,11 @@
 @page
-@model SE1728_Group2_A2.Pages.Staffs.DetailsModel
+@model SE1728_Group2_A2.Pages.Staffs.ProfileModel
 
 @{
     ViewData["Title"] = "Details";
 }
 
-<h1>Details</h1>
+<h1>Profile</h1>
 
 <div>
     <hr />
@@ -31,5 +31,8 @@
     </dl>
 </div>
 <div>
-    <a asp-page="/Staffs/Index" class="btn btn-dark">Back to List</a>
+    @if (Model.Staff.Role == 0)
+    {
+        <a asp-page="/Staffs/EditProfile" asp-route-id="@Model.Staff?.StaffId" class="btn btn-primary">Update</a>
+    }
 </div>

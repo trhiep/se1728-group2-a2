@@ -84,9 +84,6 @@ namespace SE1728_Group2_A2.Pages.Staffs
                 try
                 {
                     await _context.SaveChangesAsync();
-                    var staff = MySessionExtensions.SessionExtensions.GetObjectFromJson<Staff>(HttpContext.Session, "Staff");
-                    staff.Name = Staff.Name;
-                    MySessionExtensions.SessionExtensions.SetObjectAsJson(HttpContext.Session, "Staff", staff);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -99,7 +96,7 @@ namespace SE1728_Group2_A2.Pages.Staffs
                         throw;
                     }
                 }
-                return RedirectToPage("./Details", new { id = Staff.StaffId });
+                return RedirectToPage("/Staffs/Index", new { id = Staff.StaffId });
             }
 
         }
