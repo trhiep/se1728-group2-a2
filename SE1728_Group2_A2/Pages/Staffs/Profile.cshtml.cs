@@ -10,11 +10,11 @@ using MySession = SE1728_Group2_A2.Utils.SessionHelper;
 
 namespace SE1728_Group2_A2.Pages.Staffs
 {
-    public class DetailsModel : PageModel
+    public class ProfileModel : PageModel
     {
         private readonly SE1728_Group2_A2.Models.MyStoreContext _context;
 
-        public DetailsModel(SE1728_Group2_A2.Models.MyStoreContext context)
+        public ProfileModel(SE1728_Group2_A2.Models.MyStoreContext context)
         {
             _context = context;
         }
@@ -34,20 +34,27 @@ namespace SE1728_Group2_A2.Pages.Staffs
                 return NotFound();
             }
 
-
-            var staff = await _context.Staffs.FirstOrDefaultAsync(m => m.StaffId == id);
-            if (staff == null)
+            if (id == 0)
             {
-                return NotFound();
+                var staff = MySession.SessionExtensions.GetObjectFromJson<Staff>(HttpContext.Session, "Staff");
+                Staff = staff;
             }
             else
             {
-                Staff = staff;
+                var staff = await _context.Staffs.FirstOrDefaultAsync(m => m.StaffId == id);
+                if (staff == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    Staff = staff;
+                }
             }
 
             return Page();
         }
-
+        
         private bool IsUserAuthenticated()
         {
             var account = SE1728_Group2_A2.Utils.SessionHelper.SessionExtensions.GetObjectFromJson<Staff>(HttpContext.Session, "Staff");
@@ -63,6 +70,6 @@ namespace SE1728_Group2_A2.Pages.Staffs
         {
             return RedirectToPage("/Staffs/Login");
         }
-
+            
     }
 }
