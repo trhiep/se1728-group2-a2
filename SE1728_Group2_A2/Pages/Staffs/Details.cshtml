@@ -33,6 +33,6 @@
 <div>
     @if (Model.Staff.Role == 0)
     {
-        <a asp-page="./Edit" asp-route-id="@Model.Staff?.StaffId" class="btn btn-primary">Update</a>
+        <a asp-page="/Staffs/EditProfile" asp-route-id="@Model.Staff?.StaffId" class="btn btn-primary">Update</a>
     }
 </div>
